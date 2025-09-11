@@ -49,7 +49,7 @@ const SAMPLE_JOBS = [
   },
 ];
 
-export default function home() {
+export default function Home() {
   const [active, setActive] = useState("home");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
