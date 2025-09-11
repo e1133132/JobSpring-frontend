@@ -1,6 +1,6 @@
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100%; 
   margin: 0;
   padding: 0;
   text-align: left;
@@ -41,7 +41,7 @@ html{
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;   
+  min-height: 100%;  
 }
 .app-root {
   height: 100%;
@@ -50,13 +50,12 @@ html{
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 10; 
+.nav{
+  position: sticky; top:0; z-index:10;
+  background: rgba(255, 255, 255, 0.9);              
+  -webkit-backdrop-filter: saturate(160%) blur(8px);
   backdrop-filter: saturate(160%) blur(8px);
-  background: rgba(10, 15, 26, 0.6);
-  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid var(--border);
 }
 .nav-inner{
   width: 100%;
@@ -69,29 +68,100 @@ html{
 .hero{
   width: 100%;
   margin: 0;                
-  padding: 0 0 28px 0;       
+  padding: 0 0 0px 0;       
 }
 .hero-img{
-  height: 260px;
-  border-radius: 0;        
-  position: relative;
+  height: 260px; position: relative;
+  border-radius: 5px;
+  overflow: hidden;                     
   box-shadow: var(--shadow);
-  background:#111;
+  background: transparent;
 }
+.hero-img::before{
+  content:""; position:absolute; inset:0;
+  background-image:url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop');
+  background-size:cover; background-position:center;
+  transform: scale(1.03);
+  filter: contrast(1.03) saturate(1.03) brightness(.9);
+  border-radius: inherit;
+  z-index:0;
+}
+
+.hero-overlay{ position:absolute; inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0));
+}
+
+
 .search-wrap{
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(1200px, 96%);  
+  position:absolute; left:50%; bottom:75px; transform:translateX(-50%);
+  width:min(900px,92%);
+  background: rgba(255,255,255,.85);
+  border:1px solid var(--border);
+  border-radius: 20px; box-shadow: var(--shadow);
+  display:flex; gap:10px; padding:10px; align-items:center;
 }
+.search-input{
+  height:46px; padding:0 14px; border-radius:12px; outline:none;width:1000px;
+  border:1px solid var(--border); background:#ffffff; color:#111827;
+}
+.select{
+  height:46px; padding:0 14px; border-radius:12px; outline:none;
+  border:1px solid var(--border); background:#ffffff; color:#111827;
+}
+.search-input::placeholder{ color:#94a3b8; }
+.search-input:focus, .select:focus{
+  border-color: rgba(34,197,94,.55); box-shadow: var(--ring);
+}
+.btn{
+  height:46px; padding:0 16px; border-radius:12px; border:0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color:#042f2e; font-weight: 800; cursor:pointer;
+}
+.btn:hover{ filter: brightness(1.03); }
 .section{
   width: 100%;
-  margin: 16px 0 24px;      
-  padding: 0 24px;         
+  background: #fffaf0;    
+  margin: 0px 0 0px;      
+  padding: 0 24px;   
 }
-.section h2{ margin: 0 0 10px; }
-.grid{ display: grid; grid-template-columns: repeat(1, minmax(0,1fr)); gap: 14px; }
+.section h2{
+  margin: 0 0 15px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+.grid{ display: grid; 
+  gap: 14px;
+  isolation: isolate;  
+   grid-template-columns: repeat(1, minmax(0,1fr));
+   }
 @media (min-width: 720px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (min-width: 1280px){ .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding:14px; display:flex; flex-direction:column; gap:10px;
+  transition:.25s ease; box-shadow: var(--shadow);
+}
+.card:hover{
+  transform: translateY(-2px);
+  border-color: rgba(34,197,94,.35);     /* 悬停用绿色边 */
+}
+.chip{
+  font-size:12px; padding:6px 8px; border-radius:999px;
+  border:1px solid var(--border); color:#334155; background:#fff;
+}
+.chip[data-accent="true"]{
+  border-color: rgba(34,197,94,.35); color:#065f46; background: rgba(34,197,94,.08);
+}
+
+/* 次级按钮（ghost）：白底浅灰边，悬停加绿边 */
+.ghost{
+  background:#fff; border:1px solid var(--border); color:#0f172a;
+}
+.ghost:hover{ border-color: rgba(34,197,94,.45); }
 .read-the-docs {
   color: #888;
 }
+footer.section{ background: var(--section); }

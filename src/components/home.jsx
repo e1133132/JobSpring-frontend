@@ -133,10 +133,11 @@ export default function home() {
 
       {/* 列表 */}
       <main className="section">
-        <h2>Jobs</h2>
+       <br></br> <h2>Jobs</h2>
         <div className="muted">
           Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
         </div>
+        <br></br>
         <div className="grid">
           {filtered.map((j) => (
             <article key={j.id} className="card" aria-label={`${j.title} at ${j.company}`}>
@@ -144,14 +145,14 @@ export default function home() {
                 <div style={{ fontWeight: 700 }}>{j.title}</div>
                 <span className="chip">{j.type}</span>
               </div>
-              <div className="row" style={{ color: "#cbd5e1" }}>
+              <div className="row" style={{ color: "black" }}>
                 <span>{j.company}</span>
-                <span>•</span>
+                <span> • </span>
                 <span>{j.location}</span>
               </div>
               <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
                 {j.tags.map((t) => (
-                  <span key={t} className="chip" style={{ borderColor: "rgba(96,165,250,.35)", color: "#dbeafe" }}>
+                  <span key={t} className="chip" style={{ borderColor: "rgba(96,165,250,.35)", color: "#192534ff" }}>
                     {t}
                   </span>
                 ))}
@@ -167,21 +168,8 @@ export default function home() {
         </div>
       </main>
 <style>{`
-        :root{
-          --bg:#0b1220;         /* main background */
-          --card:#0f172a;       /* card background */
-          --muted:#94a3b8;      /* sub text */
-          --text:#e2e8f0;       /* main text */
-          --accent:#60a5fa;     /* 高亮 */
-          --accent-2:#34d399;   /* 高亮2 */
-          --ring: 0 0 0 3px rgba(96,165,250,.35);
-          --shadow: 0 10px 30px rgba(0,0,0,.35);
-          --radius: 18px;
-        }
         *{box-sizing:border-box}
        
-       
-
         /* 顶部导航 */
         .logo{display:flex; align-items:center; gap:10px}
         .logo-mark{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:grid; place-items:center; box-shadow:var(--shadow)}
@@ -189,39 +177,26 @@ export default function home() {
         .brand{font-weight:700; letter-spacing:.3px}
         .spacer{flex:1}
         .tabs{display:flex; gap:10px}
-        .tab-btn{padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.08); color:#cbd5e1; cursor:pointer; background:transparent}
-        .tab-btn:hover{border-color:rgba(255,255,255,.18); color:#fff}
-        .tab-btn.active{background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.35); color:#fff; box-shadow:var(--ring)}
-
-        /* 英雄区：背景图 + 搜索条 */
-        .hero-img::before{
-          content:""; position:absolute; inset:0;
-          background-image:url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop');
-          background-size:cover; background-position:center; transform:scale(1.03);
-          filter:contrast(1.05) saturate(1.05) brightness(.85);
-        }
-        .hero-overlay{position:absolute; inset:0; background:linear-gradient(180deg,rgba(11,18,32,.1),rgba(11,18,32,.7))}
-        .search-wrap{
-          position:absolute; left:50%; bottom:75px; transform:translateX(-50%);
-          width:min(900px,92%);
-          background:rgba(15,23,42,.9); border:1px solid rgba(255,255,255,.06);
-          border-radius:20px; box-shadow:var(--shadow);
-          display:flex; gap:10px; padding:10px; align-items:center;
-        }
-        .search-input{flex:1; height:46px; padding:0 14px; border-radius:12px; outline:none; border:1px solid rgba(255,255,255,.08); background:#0b1220; color:#e2e8f0}
-        .search-input:focus{border-color:rgba(96,165,250,.5); box-shadow:var(--ring)}
-        .select{height:46px; padding:0 12px; border-radius:12px; background:#0b1220; color:#e2e8f0; border:1px solid rgba(255,255,255,.08)}
-        .btn{height:46px; padding:0 16px; border-radius:12px; border:0; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#0b1220; font-weight:700; cursor:pointer}
+        .tab-btn{
+            padding:10px 14px; border-radius:12px;
+            border:1px solid var(--border);
+            color:#334155; background: transparent; cursor:pointer;
+          }
+          .tab-btn:hover{
+            border-color: rgba(34,197,94,.45); color:#111827;
+          }
+          .tab-btn.active{
+            background: rgba(34,197,94,.12);
+            border-color: rgba(34,197,94,.45);
+            color:#065f46;
+            box-shadow: var(--ring);
+          }
+         color:#fff; 
+         box-shadow:var(--ring)}
 
         /* 列表区 */
         .muted{color:var(--muted); font-size:14px}
-        .card{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:10px; transition:.25s ease; box-shadow:0 2px 10px rgba(0,0,0,.25)}
-        .card:hover{transform:translateY(-2px); border-color:rgba(96,165,250,.35)}
-        .row{display:flex; align-items:center; gap:10px}
-        .chip{font-size:12px; padding:6px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:#cbd5e1}
         .cta{margin-top:auto; display:flex; gap:8px}
-        .ghost{background:transparent; border:1px solid rgba(255,255,255,.12); color:#e2e8f0}
-        .ghost:hover{border-color:rgba(96,165,250,.5)}
       `}</style>
 
       <footer className="section" style={{paddingBottom:40}}>
