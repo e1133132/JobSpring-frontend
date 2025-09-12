@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import '../App.css';
-import jobSpringLogo from "../assets/jobspringt.png";
+import "../../App.css";
+import jobSpringLogo from "../../assets/jobspringt.png";
 
 const SAMPLE_JOBS = [
   {
