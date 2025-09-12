@@ -2,9 +2,9 @@ name: Fronted JobSpring SAST test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "**" ]
   schedule:
     - cron: "0 7 * * 1"  
 
