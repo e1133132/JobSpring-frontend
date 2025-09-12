@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/job_seeker/home";
-import Navigation from "./components/navigation"; 
+import React from "react";
 import AdminDashboard from "./components/admin/dashboard";
 
 function App() {
