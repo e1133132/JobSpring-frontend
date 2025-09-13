@@ -1,108 +1,86 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState,useEffect } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
-import {NavLink} from "react-router-dom";
+import axios from 'axios';
 
-const SAMPLE_JOBS = [
-  {
-    id: 1,
-    title: "Frontend Engineer",
-    company: "LHT Digital",
-    location: "Singapore",
-    type: "Full-time",
-    tags: ["React", "TypeScript", "UI"],
-    postedAt: "2025-09-03",
-    description:
-      "Build modern web interfaces and component libraries for logistics apps.",
-  },
-  {
-    id: 2,
-    title: "Backend Developer",
-    company: "SimTech",
-    location: "Singapore",
-    type: "Contract",
-    tags: ["ASP.NET", "SQL Server", "API"],
-    postedAt: "2025-08-27",
-    description:
-      "Design resilient Web APIs, optimise SQL queries, integrate with mobile apps.",
-  },
-  {
-    id: 3,
-    title: "Mobile Engineer",
-    company: "PMS Mobile Team",
-    location: "Remote (Asia)",
-    type: "Full-time",
-    tags: ["React Native", "Expo", "Camera"],
-    postedAt: "2025-08-20",
-    description:
-      "Implement signature capture, QR workflows, and offline-first features.",
-  },
-  {
-    id: 4,
-    title: "3D Graphics Developer",
-    company: "LHT Labs",
-    location: "Singapore",
-    type: "Internship",
-    tags: ["Three.js", "WebGL", "Konva"],
-    postedAt: "2025-08-10",
-    description:
-      "Build pallet 2D/3D editors with scene tools and export pipelines.",
-  },
-];
 
 export default function Home() {
-  //const [active, setActive] = useState("home");
+   console.log('[Home] render');
+  const [active, setActive] = useState("home");
+  //const { token} = route.params;
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [JobPosition,setJobPosition]= useState([]);
+  let fetchURL=null;
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return SAMPLE_JOBS.filter((j) => {
-      const inText = (
-        j.title + " " + j.company + " " + j.location + " " + j.tags.join(" ")
-      )
-        .toLowerCase()
-        .includes(q);
-      const typeOK = type === "all" ? true : j.type.toLowerCase() === type;
-      return inText && typeOK;
-    });
-  }, [query, type]);
+    useEffect(() => {
+      setLoading(true);
+    const fetchJobPosition = async () => {
+      try {
+        fetchURL=`http://192.168.0.4:8081/api/job_seeker/job_list`
+        const response = await axios.get(
+          fetchURL,
+          {  headers: token ? { Authorization: `Bearer ${token}` } : undefined, }
+        );
+        console.log(response)
+        setJobPosition(response.data.content);
+      } catch (error) {
+        console.error('Error fetching JobPosition:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+      fetchJobPosition();
+  },[]);
+  
+    const filtered = useMemo(() => {
+     console.log('[Home] compute filtered', { len: (JobPosition||[]).length, query, type });
+  const q = query.trim().toLowerCase();
+  return (JobPosition ?? []).filter((j) => {
+    const hay = `${j.title ?? ''} ${j.company ?? ''} ${j.location ?? ''} ${(j.tags ?? []).join(' ')}`.toLowerCase();
+    const inText = q ? hay.includes(q) : true;
+    const t = (j.employmentType ?? '').toString().toLowerCase();
+    const typeOK = type === 'all' ? true : t === type;
 
+    return inText && typeOK;
+  });
+}, [JobPosition, query, type]);
+  
   return (
     <div className="app-root">
 
       <nav className="nav">
         <div className="nav-inner">
-          <div className="logo">  
+          <div className="logo">
             <img
-            src={jobSpringLogo}
-            alt="JobSpring Logo"
-            style={{ width: "260px", height: "auto" }}
-          />
-           
+              src={jobSpringLogo}
+              alt="JobSpring Logo"
+              style={{ width: "260px", height: "auto" }}
+            />
+
           </div>
           <div className="spacer" />
           <div className="tabs" role="tablist" aria-label="Primary">
             {[
-              { key: "home", label: "Home", to: "/" },
-              { key: "community", label: "Community", to: "/community" },
-              { key: "profile", label: "Profile", to: "/profile" },
+              { key: "home", label: "Home" },
+              { key: "community", label: "Community" },
+              { key: "profile", label: "Profile" },
             ].map((t) => (
-              <NavLink
+              <button
                 key={t.key}
-                to={t.to}
-                className={({ isActive }) =>
-                    `tab-btn ${isActive ? "active" : ""}`
-                }
+                role="tab"
+                aria-selected={active === t.key}
+                className={`tab-btn ${active === t.key ? "active" : ""}`}
+                onClick={() => setActive(t.key)}
               >
                 {t.label}
-              </NavLink>
+              </button>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* 英雄图 + 搜索 */}
       <header className="hero" aria-label="Search jobs">
         <div className="hero-img">
           <div className="hero-overlay" />
@@ -132,9 +110,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 列表 */}
       <main className="section">
-       <br></br> <h2>Jobs</h2>
+        <br></br> <h2>Jobs</h2>
         <div className="muted">
           Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
         </div>
@@ -168,7 +145,7 @@ export default function Home() {
           ))}
         </div>
       </main>
-<style>{`
+      <style>{`
         *{box-sizing:border-box}
        
         /* 顶部导航 */
@@ -200,7 +177,7 @@ export default function Home() {
         .cta{margin-top:auto; display:flex; gap:8px}
       `}</style>
 
-      <footer className="section" style={{paddingBottom:40}}>
+      <footer className="section" style={{ paddingBottom: 40 }}>
         <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
       </footer>
     </div>
