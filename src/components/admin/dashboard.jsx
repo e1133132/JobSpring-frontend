@@ -11,8 +11,8 @@ const INITIAL_JOBS = [
 export default function AdminDashboard() {
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState("all"); // all | active | invalid
-  const [activeTab, setActiveTab] = useState("jobs"); // jobs | profile
+  const [filter, setFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("jobs");
 
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
@@ -40,17 +40,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-root">
-      {/* ===== 主题变量（白色主题 + 绿色点缀） ===== */}
-
-      {/* ===== 置顶导航 ===== */}
       <nav className="nav" aria-label="Primary">
         <div className="nav-inner">
           <div className="brand">
             <img
-                        src={jobSpringLogo}
-                        alt="JobSpring Logo"
-                        style={{ width: "260px", height: "auto" }}
-                      />
+              src={jobSpringLogo}
+              alt="JobSpring Logo"
+              style={{ width: "260px", height: "auto" }}
+            />
             <div className="brand-title">JobPring Admin</div>
           </div>
           <div className="spacer" />
@@ -74,74 +71,69 @@ export default function AdminDashboard() {
       </nav>
 
       <div className="container">
-        {/* ===== 工具栏：长搜索框 + 筛选 ===== */}
         <section className="toolbar" aria-label="Filters">
           <input
             className="input"
             placeholder="Search title / company / status"
             value={q}
-            onChange={(e)=>setQ(e.target.value)}
+            onChange={(e) => setQ(e.target.value)}
           />
           <select
             className="select"
             value={filter}
-            onChange={(e)=>setFilter(e.target.value)}
+            onChange={(e) => setFilter(e.target.value)}
             aria-label="Status filter"
           >
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="invalid">Invalid</option>
           </select>
-          <button className="btn ghost" onClick={()=>{ setQ(""); setFilter("all"); }}>
+          <button className="btn ghost" onClick={() => { setQ(""); setFilter("all"); }}>
             Reset
           </button>
         </section>
 
-        {/* ===== 列表区（仅在 Jobs 标签下显示） ===== */}
         {activeTab === "jobs" ? (
-  <main className="section" aria-label="Jobs list">
-    <h2>Jobs</h2>
-    <div className="muted" style={{ marginBottom: 8 }}>
-      Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
-    </div>
-    <div className="grid">
-      {filtered.length === 0 && <div className="muted">No jobs found.</div>}
-      {filtered.map((j) => (
-        <article key={j.id} className="card" aria-label={`Job ${j.id}`}>
-          <div>
-            <div className="row">
-              <span className="name">{j.title}</span>
-              <span className="muted">@ {j.company}</span>
+          <main className="section" aria-label="Jobs list">
+            <h2>Jobs</h2>
+            <div className="muted" style={{ marginBottom: 8 }}>
+              Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
             </div>
-            <div className="row" style={{ marginTop: 6 }}>
-              <span className={`pill ${j.status === "invalid" ? "invalid" : ""}`}>
-                status: {j.status}
-              </span>
-              <span className="pill">id: {j.id}</span>
+            <div className="grid">
+              {filtered.length === 0 && <div className="muted">No jobs found.</div>}
+              {filtered.map((j) => (
+                <article key={j.id} className="card" aria-label={`Job ${j.id}`}>
+                  <div>
+                    <div className="row">
+                      <span className="name">{j.title}</span>
+                      <span className="muted">@ {j.company}</span>
+                    </div>
+                    <div className="row" style={{ marginTop: 6 }}>
+                      <span className={`pill ${j.status === "invalid" ? "invalid" : ""}`}>
+                        status: {j.status}
+                      </span>
+                      <span className="pill">id: {j.id}</span>
+                    </div>
+                  </div>
+                  <div className="actions">
+                    <button className="btn danger" onClick={() => removeJob(j.id)}>delete</button>
+                    <button className="btn warning" onClick={() => markInvalid(j.id)}>
+                      {j.status === "invalid" ? "restore" : "invalid"}
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
-          </div>
-          <div className="actions">
-            <button className="btn danger" onClick={() => removeJob(j.id)}>delete</button>
-            <button className="btn warning" onClick={() => markInvalid(j.id)}>
-              {j.status === "invalid" ? "restore" : "invalid"}
-            </button>
-          </div>
-        </article>
-      ))}
-    </div>
-  </main>
-) : (
-  <Profile />   // else 分支直接渲染 Profile
-)}
-              <style>{`
-        
-
+          </main>
+        ) : (
+          <Profile />
+        )}
+        <style>{`
+      
         *{box-sizing:border-box}
         html, body, #root { height: 100%; }
         body{ margin:0; background: var(--bg); color: var(--text);
               font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-
-        /* ===== 顶部导航（白色玻璃 + 绿色活跃态） ===== */
         
         .nav-inner{
           max-width: 1100px;
@@ -175,16 +167,15 @@ export default function AdminDashboard() {
           box-shadow: var(--ring);
         }
 
-        /* ===== 页面容器 ===== */
+        
         .container{ max-width:1100px; margin: 0 auto; padding: 18px 20px; }
 
-        /* ===== 工具栏：搜索更长 ===== */
         .toolbar{
           margin: 18px 0; display:flex; gap:10px; flex-wrap: wrap;
           align-items: center;
         }
         .input{
-          flex: 2 1 520px;                 /* 🔥 让搜索框更长 */
+          flex: 2 1 520px;                
           height: 46px; padding: 0 14px; border-radius: 12px;
           border: 1px solid var(--border); background: #fff; color: var(--text);
         }
@@ -209,7 +200,6 @@ export default function AdminDashboard() {
         }
         .ghost:hover{ border-color: rgba(34,197,94,.45); }
 
-        /* ===== 列表区（奶白背景） ===== */
         .section{
           width: 100%;
           background: var(--section);
@@ -226,7 +216,6 @@ export default function AdminDashboard() {
         }
         .muted{ color: var(--muted); font-size: 14px; }
 
-        /* ===== 网格 / 卡片 ===== */
         .grid{
           display:grid; gap: 14px; isolation: isolate;
           grid-template-columns: repeat(1, minmax(0,1fr));
@@ -268,7 +257,7 @@ export default function AdminDashboard() {
 
       </div>
     </div>
-    
+
   );
-  
+
 }
