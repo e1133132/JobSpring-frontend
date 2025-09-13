@@ -7,15 +7,14 @@ import axios from 'axios';
 export default function Home() {
    console.log('[Home] render');
   const [active, setActive] = useState("home");
-  //const { token} = route.params;
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
-  const [loading, setLoading] = useState(true);
+  //const [loading, setLoading] = useState(true);
   const [JobPosition,setJobPosition]= useState([]);
   let fetchURL=null;
-
+  const token =  "";
     useEffect(() => {
-      setLoading(true);
+     // setLoading(true);
     const fetchJobPosition = async () => {
       try {
         fetchURL=`http://192.168.0.4:8081/api/job_seeker/job_list`
@@ -28,7 +27,7 @@ export default function Home() {
       } catch (error) {
         console.error('Error fetching JobPosition:', error);
       } finally {
-        setLoading(false);
+       // setLoading(false);
       }
     };
       fetchJobPosition();
