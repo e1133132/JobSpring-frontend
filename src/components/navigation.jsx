@@ -1,14 +1,15 @@
 // navigation.jsx
-import React, { useState } from "react";
+import React from "react";
 //import "./navigation.css"; // 可选，单独抽离样式
+import { NavLink } from "react-router-dom";
 
 export default function Navigation() {
-  const [active, setActive] = useState("home");
+  //const [active, setActive] = useState("home");
 
   const navItems = [
-    { key: "home", label: "Home" },
-    { key: "community", label: "Community" },
-    { key: "profile", label: "Profile" },
+    { key: "home", label: "Home", to: "/" },
+    { key: "community", label: "Community", to: "/community" },
+    { key: "profile", label: "Profile", to: "/profile" },
   ];
 
   return (
@@ -23,13 +24,15 @@ export default function Navigation() {
         {/* 导航按钮 */}
         <div className="tabs">
           {navItems.map((item) => (
-            <button
+            <NavLink
               key={item.key}
-              className={`tab-btn ${active === item.key ? "active" : ""}`}
-              onClick={() => setActive(item.key)}
+              to={item.to}
+              className={({ isActive }) =>
+                  `tab-btn ${isActive ? "active" : ""}`
+              }
             >
               {item.label}
-            </button>
+            </NavLink>
           ))}
         </div>
       </div>

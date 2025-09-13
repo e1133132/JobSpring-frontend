@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
+import {NavLink} from "react-router-dom";
 
 const SAMPLE_JOBS = [
   {
@@ -50,7 +51,7 @@ const SAMPLE_JOBS = [
 ];
 
 export default function Home() {
-  const [active, setActive] = useState("home");
+  //const [active, setActive] = useState("home");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
 
@@ -83,19 +84,19 @@ export default function Home() {
           <div className="spacer" />
           <div className="tabs" role="tablist" aria-label="Primary">
             {[
-              { key: "home", label: "Home" },
-              { key: "community", label: "Community" },
-              { key: "profile", label: "Profile" },
+              { key: "home", label: "Home", to: "/" },
+              { key: "community", label: "Community", to: "/community" },
+              { key: "profile", label: "Profile", to: "/profile" },
             ].map((t) => (
-              <button
+              <NavLink
                 key={t.key}
-                role="tab"
-                aria-selected={active === t.key}
-                className={`tab-btn ${active === t.key ? "active" : ""}`}
-                onClick={() => setActive(t.key)}
+                to={t.to}
+                className={({ isActive }) =>
+                    `tab-btn ${isActive ? "active" : ""}`
+                }
               >
                 {t.label}
-              </button>
+              </NavLink>
             ))}
           </div>
         </div>
