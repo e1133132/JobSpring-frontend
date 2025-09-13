@@ -2,17 +2,19 @@ import React, { useMemo, useState,useEffect } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
 import axios from 'axios';
+import {NavLink} from "react-router-dom";
 
 
 export default function Home() {
-   console.log('[Home] render');
-  const [active, setActive] = useState("home");
+    console.log('[Home] render');
+  //const [active, setActive] = useState("home");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
   //const [loading, setLoading] = useState(true);
   const [JobPosition,setJobPosition]= useState([]);
   let fetchURL=null;
-  const token =  "";
+  //const token =  "";
+  
     useEffect(() => {
      // setLoading(true);
     const fetchJobPosition = async () => {
@@ -20,7 +22,7 @@ export default function Home() {
         fetchURL=`http://192.168.0.4:8081/api/job_seeker/job_list`
         const response = await axios.get(
           fetchURL,
-          {  headers: token ? { Authorization: `Bearer ${token}` } : undefined, }
+         // {  headers: token ? { Authorization: `Bearer ${token}` } : undefined, }
         );
         console.log(response)
         setJobPosition(response.data.content);
@@ -33,10 +35,10 @@ export default function Home() {
       fetchJobPosition();
   },[]);
   
-    const filtered = useMemo(() => {
-     console.log('[Home] compute filtered', { len: (JobPosition||[]).length, query, type });
-  const q = query.trim().toLowerCase();
-  return (JobPosition ?? []).filter((j) => {
+   const filtered = useMemo(() => {
+       console.log('[Home] compute filtered', { len: (JobPosition||[]).length, query, type });
+    const q = query.trim().toLowerCase();
+    return (JobPosition ?? []).filter((j) => {
     const hay = `${j.title ?? ''} ${j.company ?? ''} ${j.location ?? ''} ${(j.tags ?? []).join(' ')}`.toLowerCase();
     const inText = q ? hay.includes(q) : true;
     const t = (j.employmentType ?? '').toString().toLowerCase();
@@ -61,22 +63,22 @@ export default function Home() {
           </div>
           <div className="spacer" />
           <div className="tabs" role="tablist" aria-label="Primary">
-            {[
-              { key: "home", label: "Home" },
-              { key: "community", label: "Community" },
-              { key: "profile", label: "Profile" },
-            ].map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={active === t.key}
-                className={`tab-btn ${active === t.key ? "active" : ""}`}
-                onClick={() => setActive(t.key)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+              {[
+                { key: "home", label: "Home", to: "/" },
+                { key: "community", label: "Community", to: "/community" },
+                { key: "profile", label: "Profile", to: "/profile" },
+              ].map((t) => (
+                  <NavLink
+                      key={t.key}
+                      to={t.to}
+                      className={({ isActive }) =>
+                          `tab-btn ${isActive ? "active" : ""}`
+                      }
+                  >
+                    {t.label}
+                  </NavLink>
+              ))}
+            </div>
         </div>
       </nav>
 
