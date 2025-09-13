@@ -1,73 +1,53 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState,useEffect } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
+import axios from 'axios';
 import {NavLink} from "react-router-dom";
 
-const SAMPLE_JOBS = [
-  {
-    id: 1,
-    title: "Frontend Engineer",
-    company: "LHT Digital",
-    location: "Singapore",
-    type: "Full-time",
-    tags: ["React", "TypeScript", "UI"],
-    postedAt: "2025-09-03",
-    description:
-        "Build modern web interfaces and component libraries for logistics apps.",
-  },
-  {
-    id: 2,
-    title: "Backend Developer",
-    company: "SimTech",
-    location: "Singapore",
-    type: "Contract",
-    tags: ["ASP.NET", "SQL Server", "API"],
-    postedAt: "2025-08-27",
-    description:
-        "Design resilient Web APIs, optimise SQL queries, integrate with mobile apps.",
-  },
-  {
-    id: 3,
-    title: "Mobile Engineer",
-    company: "PMS Mobile Team",
-    location: "Remote (Asia)",
-    type: "Full-time",
-    tags: ["React Native", "Expo", "Camera"],
-    postedAt: "2025-08-20",
-    description:
-        "Implement signature capture, QR workflows, and offline-first features.",
-  },
-  {
-    id: 4,
-    title: "3D Graphics Developer",
-    company: "LHT Labs",
-    location: "Singapore",
-    type: "Internship",
-    tags: ["Three.js", "WebGL", "Konva"],
-    postedAt: "2025-08-10",
-    description:
-        "Build pallet 2D/3D editors with scene tools and export pipelines.",
-  },
-];
 
 export default function Home() {
+    console.log('[Home] render');
   //const [active, setActive] = useState("home");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
+  //const [loading, setLoading] = useState(true);
+  const [JobPosition,setJobPosition]= useState([]);
+  let fetchURL=null;
+  //const token =  "";
 
-  const filtered = useMemo(() => {
+    useEffect(() => {
+     // setLoading(true);
+    const fetchJobPosition = async () => {
+      try {
+        fetchURL=`http://192.168.0.4:8081/api/job_seeker/job_list`
+        const response = await axios.get(
+          fetchURL,
+         // {  headers: token ? { Authorization: `Bearer ${token}` } : undefined, }
+        );
+        console.log(response)
+        setJobPosition(response.data.content);
+      } catch (error) {
+        console.error('Error fetching JobPosition:', error);
+      } finally {
+       // setLoading(false);
+      }
+    };
+      fetchJobPosition();
+  },[]);
+
+   const filtered = useMemo(() => {
+       console.log('[Home] compute filtered', { len: (JobPosition||[]).length, query, type });
     const q = query.trim().toLowerCase();
-    return SAMPLE_JOBS.filter((j) => {
-      const inText = (
-          j.title + " " + j.company + " " + j.location + " " + j.tags.join(" ")
-      )
-          .toLowerCase()
-          .includes(q);
-      const typeOK = type === "all" ? true : j.type.toLowerCase() === type;
-      return inText && typeOK;
-    });
-  }, [query, type]);
+    return (JobPosition ?? []).filter((j) => {
+    const hay = `${j.title ?? ''} ${j.company ?? ''} ${j.location ?? ''} ${(j.tags ?? []).join(' ')}`.toLowerCase();
+    const inText = q ? hay.includes(q) : true;
+    const t = (j.employmentType ?? '').toString().toLowerCase();
+    const typeOK = type === 'all' ? true : t === type;
 
+    return inText && typeOK;
+  });
+}, [JobPosition, query, type]);
+  
   return (
       <div className="app-root">
 
@@ -102,73 +82,71 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* 英雄图 + 搜索 */}
-        <header className="hero" aria-label="Search jobs">
-          <div className="hero-img">
-            <div className="hero-overlay" />
-            <div className="search-wrap">
-              <input
-                  className="search-input"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search jobs, companies, locations, or tags..."
-                  aria-label="Search"
-              />
-              <select
-                  className="select"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  aria-label="Job type"
-              >
-                <option value="all">All types</option>
-                <option value="full-time">Full-time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-              </select>
-              <button className="btn" onClick={() => { /* 可接后端搜索 */ }}>
-                Search
-              </button>
-            </div>
+      <header className="hero" aria-label="Search jobs">
+        <div className="hero-img">
+          <div className="hero-overlay" />
+          <div className="search-wrap">
+            <input
+              className="search-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search jobs, companies, locations, or tags..."
+              aria-label="Search"
+            />
+            <select
+              className="select"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              aria-label="Job type"
+            >
+              <option value="all">All types</option>
+              <option value="full-time">Full-time</option>
+              <option value="contract">Contract</option>
+              <option value="internship">Internship</option>
+            </select>
+            <button className="btn" onClick={() => { /* 可接后端搜索 */ }}>
+              Search
+            </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* 列表 */}
-        <main className="section">
-          <br></br> <h2>Jobs</h2>
-          <div className="muted">
-            Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
-          </div>
-          <br></br>
-          <div className="grid">
-            {filtered.map((j) => (
-                <article key={j.id} className="card" aria-label={`${j.title} at ${j.company}`}>
-                  <div className="row" style={{ justifyContent: "space-between" }}>
-                    <div style={{ fontWeight: 700 }}>{j.title}</div>
-                    <span className="chip">{j.type}</span>
-                  </div>
-                  <div className="row" style={{ color: "black" }}>
-                    <span>{j.company}</span>
-                    <span> • </span>
-                    <span>{j.location}</span>
-                  </div>
-                  <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
-                    {j.tags.map((t) => (
-                        <span key={t} className="chip" style={{ borderColor: "rgba(96,165,250,.35)", color: "#192534ff" }}>
+      <main className="section">
+        <br></br> <h2>Jobs</h2>
+        <div className="muted">
+          Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
+        </div>
+        <br></br>
+        <div className="grid">
+          {filtered.map((j) => (
+            <article key={j.id} className="card" aria-label={`${j.title} at ${j.company}`}>
+              <div className="row" style={{ justifyContent: "space-between" }}>
+                <div style={{ fontWeight: 700 }}>{j.title}</div>
+                <span className="chip">{j.type}</span>
+              </div>
+              <div className="row" style={{ color: "black" }}>
+                <span>{j.company}</span>
+                <span> • </span>
+                <span>{j.location}</span>
+              </div>
+              <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+                {j.tags.map((t) => (
+                  <span key={t} className="chip" style={{ borderColor: "rgba(96,165,250,.35)", color: "#192534ff" }}>
                     {t}
                   </span>
-                    ))}
-                  </div>
-                  <p className="muted" style={{ margin: 0 }}>{j.description}</p>
-                  <div className="cta">
-                    <button className="btn" onClick={() => alert(`Apply: ${j.title}`)}>Apply</button>
-                    <button className="tab-btn ghost" onClick={() => alert(`Save: ${j.title}`)}>Save</button>
-                  </div>
-                  <div className="muted" style={{ fontSize: 12 }}>Posted on {j.postedAt}</div>
-                </article>
-            ))}
-          </div>
-        </main>
-        <style>{`
+                ))}
+              </div>
+              <p className="muted" style={{ margin: 0 }}>{j.description}</p>
+              <div className="cta">
+                <button className="btn" onClick={() => alert(`Apply: ${j.title}`)}>Apply</button>
+                <button className="tab-btn ghost" onClick={() => alert(`Save: ${j.title}`)}>Save</button>
+              </div>
+              <div className="muted" style={{ fontSize: 12 }}>Posted on {j.postedAt}</div>
+            </article>
+          ))}
+        </div>
+      </main>
+      <style>{`
         *{box-sizing:border-box}
        
         /* 顶部导航 */
@@ -200,9 +178,9 @@ export default function Home() {
         .cta{margin-top:auto; display:flex; gap:8px}
       `}</style>
 
-        <footer className="section" style={{paddingBottom:40}}>
-          <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
-        </footer>
-      </div>
+      <footer className="section" style={{ paddingBottom: 40 }}>
+        <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
+      </footer>
+    </div>
   );
 }
