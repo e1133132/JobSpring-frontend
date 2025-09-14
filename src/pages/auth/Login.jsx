@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { login } from "../../services/authService";
-import { useNavigate } from "react-router-dom";
+import {useState} from "react";
+import {login} from "../../services/authService";
+import {useNavigate} from "react-router-dom";
 import React from "react";
 import jobSpringLogo from "../../assets/jobspringt.png";
 
 export default function Login() {
-    const [form, setForm] = useState({ email: "", password: "" });
+    const [form, setForm] = useState({email: "", password: ""});
     const [msg, setMsg] = useState(null);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+        setForm((f) => ({...f, [e.target.name]: e.target.value}));
     };
 
     const handleSubmit = async (e) => {
@@ -27,12 +27,12 @@ export default function Login() {
 
     return (
         <div>
-               <div className="logo" style={{ marginTop: "-100px" }}>
-            <img
-                src={jobSpringLogo}
-                alt="JobSpring Logo"
-                style={{ width: "260px", height: "auto" }}
-            />
+            <div className="logo" style={{marginTop: "-100px"}}>
+                <img
+                    src={jobSpringLogo}
+                    alt="JobSpring Logo"
+                    style={{width: "260px", height: "auto"}}
+                />
             </div>
             <div style={{
                 maxWidth: 400,
@@ -97,12 +97,32 @@ export default function Login() {
                         fontWeight: "600",
                         transition: "background 0.2s"
                     }}
-                        onMouseEnter={(e) => e.target.style.background = "#059669"} // hover 深绿
-                        onMouseLeave={(e) => e.target.style.background = "#10b981"}
+                            onMouseEnter={(e) => e.target.style.background = "#059669"} // hover 深绿
+                            onMouseLeave={(e) => e.target.style.background = "#10b981"}
                     >
                         Login
                     </button>
                 </form>
+
+                <button
+                    onClick={() => navigate("/auth/register")}
+                    style={{
+                        marginTop: "1rem",
+                        width: "100%",
+                        padding: "0.75rem",
+                        background: "#3b82f6",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        transition: "background 0.2s"
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = "#2563eb"}
+                    onMouseLeave={(e) => e.target.style.background = "#3b82f6"}
+                >
+                    Register
+                </button>
 
                 {msg && <p style={{
                     marginTop: "1rem",
