@@ -29,6 +29,7 @@ export default function Profile() {
     // select 单独 state
     const [visibility, setVisibility] = useState("2");
     const [level, setLevel] = useState("3");
+    const [skillsList, setSkillsList] = useState([]);
 
     // 初始化时请求后端数据
     useEffect(() => {
@@ -71,6 +72,23 @@ export default function Profile() {
         };
 
         fetchProfile();
+    }, []);
+
+    useEffect(() => {
+        const fetchSkills = async () => {
+            try {
+                const response = await axios.get("http://localhost:8080/api/skills", {
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                setSkillsList(response.data);
+            } catch (error) {
+                console.error("Failed to fetch skills:", error);
+            }
+        };
+
+        fetchSkills();
     }, []);
 
     const handleChange = (e) => {
@@ -186,7 +204,7 @@ export default function Profile() {
                             padding: "20px",
                         }}
                     >
-                        <h2 style={{ marginBottom: "10px" }}>Profile</h2>
+                        <h2 style={{marginBottom: "10px"}}>Profile</h2>
 
                         {/* Summary */}
                         <label className="muted">Summary</label>
@@ -212,7 +230,7 @@ export default function Profile() {
                         </select>
 
                         {/* Education */}
-                        <h3 style={{ marginTop: "20px" }}>Education</h3>
+                        <h3 style={{marginTop: "20px"}}>Education</h3>
                         <label className="muted">School</label>
                         <input
                             className="search-input"
@@ -265,7 +283,7 @@ export default function Profile() {
                         />
 
                         {/* Experience */}
-                        <h3 style={{ marginTop: "20px" }}>Experience</h3>
+                        <h3 style={{marginTop: "20px"}}>Experience</h3>
                         <label className="muted">Company</label>
                         <input
                             className="search-input"
@@ -309,15 +327,25 @@ export default function Profile() {
                         />
 
                         {/* Skills */}
-                        <h3 style={{ marginTop: "20px" }}>Skills</h3>
+                        <h3 style={{marginTop: "20px"}}>Skills</h3>
                         <label className="muted">Skill</label>
-                        <input
-                            className="search-input"
+                        <select
+                            className="select"
                             name="skill"
                             value={form.skill}
                             onChange={handleChange}
-                            placeholder="Skill name"
-                        />
+                        >
+                            <option value="">-- Select a Skill --</option>
+                            {["Backend", "Frontend", "Database", "DevOps", "Cloud", "Tools", "CI/CD", "System", "Methodology"].map(cat => (
+                                <optgroup key={cat} label={cat}>
+                                    {skillsList
+                                        .filter(s => s.category === cat)
+                                        .map(s => (
+                                            <option key={s.name} value={s.name}>{s.name}</option>
+                                        ))}
+                                </optgroup>
+                            ))}
+                        </select>
                         <label className="muted">Level</label>
                         <select
                             className="select"
@@ -335,7 +363,7 @@ export default function Profile() {
                     {/* Save / Reset buttons 在表单外部 */}
                     <div
                         className="cta"
-                        style={{ marginTop: "20px", justifyContent: "center" }}
+                        style={{marginTop: "20px", justifyContent: "center"}}
                     >
                         <button type="submit" form="profileForm" className="btn">
                             Save
