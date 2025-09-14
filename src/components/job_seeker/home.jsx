@@ -2,8 +2,9 @@ import React, { useMemo, useState, useEffect } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
 import axios from 'axios';
-import { NavLink } from "react-router-dom";
+import {NavLink, useNavigate} from "react-router-dom";
 import api from "../../services/api.js";
+import {FaStar} from "react-icons/fa";
 
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
   //const [loading, setLoading] = useState(true);
   const [JobPosition, setJobPosition] = useState([]);
   //const token =  "";
+  const navigate = useNavigate();
 
   useEffect(() => {
     // setLoading(true);
@@ -163,10 +165,22 @@ export default function Home() {
               </div>
               <p className="muted" style={{ margin: 0 }}>{j.description}</p>
               <div className="cta">
-                <button className="btn" onClick={() => alert(`Apply: ${j.title}`)}>Apply</button>
-                <button className="tab-btn ghost" onClick={() => alert(`Save: ${j.title}`)}>Save</button>
+                <button
+                    className="btn"
+                    onClick={() => navigate(`/jobs/${j.id}`)}   // 跳转详情页
+                >
+                  Apply
+                </button>
+                <button
+                    className="tab-btn ghost"
+                    onClick={() => alert(`Saved: ${j.title}`)}
+                    style={{color: "#fbbf24", fontSize: "20px"}}  // 收藏图标
+                >
+                  <FaStar/>
+                </button>
+
               </div>
-              <div className="muted" style={{ fontSize: 12 }}>Posted on {j.postedAt}</div>
+              <div className="muted" style={{fontSize: 12}}>Posted on {j.postedAt}</div>
             </article>
           ))}
         </div>
