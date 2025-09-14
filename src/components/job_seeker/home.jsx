@@ -19,18 +19,19 @@ export default function Home() {
 
   useEffect(() => {
     // setLoading(true);
-    const fetchJobPosition = async () => {
-      try {
-        const response = await api.get('/api/job_seeker/job_list');
-        setJobPosition(response.data.content);
-      } catch (error) {
-        console.error('Error fetching JobPosition:', error);
-      } finally {
-        // setLoading(false);
-      }
-    };
     fetchJobPosition();
   }, []);
+
+  const fetchJobPosition = async () => {
+    try {
+      const response = await api.get('/api/job_seeker/job_list');
+      setJobPosition(response.data.content);
+    } catch (error) {
+      console.error('Error fetching JobPosition:', error);
+    } finally {
+      // setLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     console.log('[Home] compute filtered', { len: (JobPosition || []).length, query, type });
@@ -64,7 +65,7 @@ export default function Home() {
           return t === type.toLowerCase();
         });
       }
-      setJobs(list);
+      setJobPosition(list);
     } catch (e) {
       console.error("Error searching jobs:", e);
     } finally {

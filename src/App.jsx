@@ -3,7 +3,6 @@ import Home from "./components/job_seeker/home";
 import Profile from "./components/job_seeker/profile";
 import React from "react";
 import AdminDashboard from "./components/admin/dashboard";
-import Navigation from "./components/navigation";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 
