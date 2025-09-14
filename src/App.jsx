@@ -5,6 +5,7 @@ import React from "react";
 import AdminDashboard from "./components/admin/dashboard";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
+import JobDetail from "./components/job_seeker/jobDetail.jsx";
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/admin" element={<AdminDashboard/>}/>
                 <Route path="/auth/register" element={<Register/>}/>
+                <Route path="/jobs/:id" element={<JobDetail/>} />
             </Routes>
         </Router>
     );
