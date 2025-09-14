@@ -146,7 +146,7 @@ html{
 }
 .card:hover{
   transform: translateY(-2px);
-  border-color: rgba(34,197,94,.35);     /* 悬停用绿色边 */
+  border-color: rgba(34,197,94,.35);     
 }
 .chip{
   font-size:12px; padding:6px 8px; border-radius:999px;
@@ -156,7 +156,6 @@ html{
   border-color: rgba(34,197,94,.35); color:#065f46; background: rgba(34,197,94,.08);
 }
 
-/* 次级按钮（ghost）：白底浅灰边，悬停加绿边 */
 .ghost{
   background:#fff; border:1px solid var(--border); color:#0f172a;
 }
