@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
 import { NavLink } from "react-router-dom";
@@ -120,10 +120,10 @@ export default function Profile() {
         };
 
         try {
-            const response = await axios.post("http://localhost:8080/api/profile", payload, {
+            const response = await axios.post("/api/profile", payload, {
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": "Bearer dummy-jwt-token" // 需要修改 token
+                    "Authorization": "Bearer dummy-jwt-token"
                 },
             });
 
@@ -137,7 +137,7 @@ export default function Profile() {
 
     return (
         <div className="app-root">
-            {/* 顶部导航 */}
+           
             <nav className="nav">
                 <div className="nav-inner">
                     <div className="logo">
@@ -150,7 +150,7 @@ export default function Profile() {
                     <div className="spacer" />
                     <div className="tabs" role="tablist" aria-label="Primary">
                         {[
-                            { key: "home", label: "Home", to: "/" },
+                            { key: "home", label: "Home", to: "/home" },
                             { key: "community", label: "Community", to: "/community" },
                             { key: "profile", label: "Profile", to: "/profile" },
                         ].map((t) => (
@@ -370,7 +370,6 @@ export default function Profile() {
                 </div>
             </main>
 
-            {/* 局部样式 */}
             <style>{`
         *{box-sizing:border-box}
 
@@ -444,7 +443,6 @@ export default function Profile() {
         }
       `}</style>
 
-            {/* 底部 */}
             <footer
                 className="section"
                 style={{ paddingBottom: 40, textAlign: "center" }}
