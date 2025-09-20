@@ -5,11 +5,12 @@ import axios from 'axios';
 import {NavLink, useNavigate} from "react-router-dom";
 import api from "../../services/api.js";
 import {FaStar} from "react-icons/fa";
+import {logout} from "../../services/authService";
 
 
 export default function Home() {
   console.log('[Home] render');
-  //const [active, setActive] = useState("home");
+  const [isAuthed, setIsAuthed] = useState(false);
   const [query, setQuery] = useState("");
   const [q, setq] = useState("");
   const [t, sett] = useState("all");
@@ -19,10 +20,26 @@ export default function Home() {
   //const token =  "";
   const navigate = useNavigate();
 
+  //  useEffect(() => {
+  //  checklogin();
+  // }, []);
+
   useEffect(() => {
-    // setLoading(true);
+    checklogin();
     fetchJobPosition();
   }, []);
+
+  const logoutt = async () => {
+    logout();
+    window.location.reload();
+  };
+
+    const checklogin = async () => {
+    if (!localStorage.getItem("jobspring_token")) {
+      setIsAuthed(false);
+    }
+    else{setIsAuthed(true);}
+  };
 
   const fetchJobPosition = async () => {
     try {
@@ -90,21 +107,36 @@ export default function Home() {
           </div>
           <div className="spacer" />
           <div className="tabs" role="tablist" aria-label="Primary">
-            {[
+            {(isAuthed
+          ? [
               { key: "home", label: "Home", to: "/home" },
               { key: "community", label: "Community", to: "/community" },
               { key: "profile", label: "Profile", to: "/profile" },
-            ].map((t) => (
-              <NavLink
-                key={t.key}
-                to={t.to}
-                className={({ isActive }) =>
-                  `tab-btn ${isActive ? "active" : ""}`
-                }
-              >
-                {t.label}
-              </NavLink>
-            ))}
+              { key: "logout", label: "logout", action: "logoutt" },
+            ]
+          : [
+              { key: "home", label: "Home", to: "/home" },
+              { key: "community", label: "Community", to: "/community" },
+              { key: "login", label: "Login", to: "/auth/login" },
+              { key: "register", label: "Register", to: "/auth/register" },
+            ]).map((t) =>  t.action === "logoutt" ?(
+              <button
+              key={t.key}
+              type="button"
+              className="tab-btn"
+              onClick={() => logoutt()}        
+            >
+              {t.label}
+            </button>
+          ) : (
+            <NavLink
+              key={t.key}
+              to={t.to}
+              className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
+            >
+              {t.label}
+            </NavLink>
+          ))}
           </div>
         </div>
       </nav>

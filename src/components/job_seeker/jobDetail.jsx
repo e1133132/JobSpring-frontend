@@ -8,7 +8,6 @@ export default function JobDetail() {
     const {id} = useParams();
     const [job, setJob] = useState(null);
 
-    // 从后端获取 job 列表并找到对应 id
     useEffect(() => {
         const fetchJob = async () => {
             try {
@@ -138,7 +137,6 @@ export default function JobDetail() {
             <style>{`
         *{box-sizing:border-box}
 
-        /* 顶部导航 */
         .logo{display:flex; align-items:center; gap:10px}
         .logo-mark{width:36px; height:36px; border-radius:10px;
          background:linear-gradient(135deg,var(--accent),var(--accent-2));
