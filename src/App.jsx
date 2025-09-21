@@ -8,21 +8,20 @@ import Login from "./pages/auth/Login";
 import JobDetail from "./components/job_seeker/jobDetail.jsx";
 import Apply_progress from "./components/job_seeker/apply_progress.jsx";
 import Community from "./components/job_seeker/community.jsx";
+import { getCurrentUser} from "./services/authService";
 
-function App() {
-    let r="";
-       useEffect(() => {
-        RoleDetect();
-      }, []);
-      const RoleDetect =async()=>{
-    if(localStorage.getItem("jobspring_role")=="2")
-     {r="/admin";}
-    else{r="/home";}
+function RoleDetect(){
+      const role = getCurrentUser()?.role;
+      console.log(role);
+      return role === 2 ? "/admin" : "/home";
   };
+function App() {
+   const initialPath = RoleDetect();
+
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Navigate to={r} replace/>}/>
+                <Route path="/" element={<Navigate to={initialPath} replace/>}/>
                 <Route path="/auth/login" element={<Login/>}/>
                 <Route path="/home" element={<Home/>}/>
                 <Route path="/community" element={<Community/>}/>

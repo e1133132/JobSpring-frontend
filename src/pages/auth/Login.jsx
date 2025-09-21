@@ -32,9 +32,9 @@ export default function Login() {
                 default:
                     navigate("/home");
             }
-            localStorage.setItem("jobspring_role", String(JSON.stringify(data.user).role));
-            console.log(JSON.stringify(data.user).role);
-            navigate("/home");
+            //localStorage.setItem("jobspring_role", data.user.role);
+            console.log(data.user.role);
+            //navigate("/home");
         } catch (error) {
             setMsg(error?.response?.data?.message || "Login failed");
         }
