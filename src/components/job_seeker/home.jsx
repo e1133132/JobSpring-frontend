@@ -20,11 +20,12 @@ export default function Home() {
   //const token =  "";
   const navigate = useNavigate();
 
-  //  useEffect(() => {
-  //  checklogin();
-  // }, []);
+   useEffect(() => {
+    RoleDetect();
+  }, []);
 
   useEffect(() => {
+   // RoleDetect();
     checklogin();
     fetchJobPosition();
   }, []);
@@ -34,11 +35,18 @@ export default function Home() {
     window.location.reload();
   };
 
+  const RoleDetect =async()=>{
+    if(localStorage.getItem("jobspring_role")=="2")
+     {navigate("/admin");return;}
+  };
+
+
     const checklogin = async () => {
     if (!localStorage.getItem("jobspring_token")) {
       setIsAuthed(false);
     }
-    else{setIsAuthed(true);}
+    else{
+      setIsAuthed(true);}
   };
 
   const fetchJobPosition = async () => {
@@ -219,32 +227,6 @@ export default function Home() {
       </main>
       <style>{`
         *{box-sizing:border-box}
-       
-        .logo{display:flex; align-items:center; gap:10px}
-        .logo-mark{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:grid; place-items:center; box-shadow:var(--shadow)}
-        .logo-mark span{font-weight:800; color:#0b1220}
-        .brand{font-weight:700; letter-spacing:.3px}
-        .spacer{flex:1}
-        .tabs{display:flex; gap:10px}
-        .tab-btn{
-            padding:10px 14px; border-radius:12px;
-            border:1px solid var(--border);
-            color:#334155; background: transparent; cursor:pointer;
-          }
-          .tab-btn:hover{
-            border-color: rgba(34,197,94,.45); color:#111827;
-          }
-          .tab-btn.active{
-            background: rgba(34,197,94,.12);
-            border-color: rgba(34,197,94,.45);
-            color:#065f46;
-            box-shadow: var(--ring);
-          }
-         color:#fff; 
-         box-shadow:var(--ring)}
-
-        .muted{color:var(--muted); font-size:14px}
-        .cta{margin-top:auto; display:flex; gap:8px}
       `}</style>
 
       <footer className="section" style={{ paddingBottom: 40 }}>

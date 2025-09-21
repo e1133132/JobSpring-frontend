@@ -181,7 +181,7 @@ export default function JobDetail() {
         .tab-btn{
             padding:10px 14px; border-radius:12px;
             border:1px solid var(--border);
-            color:#334155; background: transparent; cursor:pointer;
+            color:#334155;font-weight: 600; background: transparent; cursor:pointer;
         }
         .tab-btn:hover{
             border-color: rgba(34,197,94,.45); color:#111827;
