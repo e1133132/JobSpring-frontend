@@ -1,7 +1,7 @@
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import Home from "./components/job_seeker/home";
 import Profile from "./components/job_seeker/profile";
-import React, {useEffect } from "react";
+import React from "react";
 import AdminDashboard from "./components/admin/dashboard";
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
