@@ -62,7 +62,9 @@ export default function Apply_progress({ data = sampleApps }) {
   const counts = useMemo(() => {
     const c = { submitted: 0, viewed: 0, resume_passed: 0 };
     for (const it of safeData) {
-      if (it?.status && c.hasOwnProperty(it.status)) c[it.status]++;
+     if (it?.status && (Object.hasOwn?.(c, it.status) || Object.prototype.hasOwnProperty.call(c, it.status))) {
+     c[it.status]++;
+}
     }
     return c;
   }, [safeData]);
@@ -203,3 +205,14 @@ export default function Apply_progress({ data = sampleApps }) {
     </div>
   );
 }
+Apply_progress.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      title: PropTypes.string,
+      company: PropTypes.string,
+      status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
+      appliedAt: PropTypes.string, // ISO string
+    })
+  ),
+};
