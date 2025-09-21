@@ -20,12 +20,7 @@ export default function Home() {
   //const token =  "";
   const navigate = useNavigate();
 
-   useEffect(() => {
-    RoleDetect();
-  }, []);
-
   useEffect(() => {
-   // RoleDetect();
     checklogin();
     fetchJobPosition();
   }, []);
@@ -34,12 +29,6 @@ export default function Home() {
     logout();
     window.location.reload();
   };
-
-  const RoleDetect =async()=>{
-    if(localStorage.getItem("jobspring_role")=="2")
-     {navigate("/admin");return;}
-  };
-
 
     const checklogin = async () => {
     if (!localStorage.getItem("jobspring_token")) {
