@@ -19,6 +19,8 @@ export default function Login() {
             const data = await login(form);
             localStorage.setItem("jobspring_token", data.token);
             localStorage.setItem("jobspring_user", JSON.stringify(data.user));
+            localStorage.setItem("jobspring_role", String(JSON.stringify(data.user).role));
+            console.log(JSON.stringify(data.user).role);
             navigate("/home");
         } catch (error) {
             setMsg(error?.response?.data?.message || "Login failed");

@@ -18,6 +18,7 @@ const TABS = [
   { key: "submitted", label: "Submitted" },
   { key: "viewed", label: "Viewed" },
   { key: "resume_passed", label: "Resume Passed" },
+  {key: "saved", label: "saved" }
 ];
 
 function formatDate(iso) {
@@ -123,7 +124,8 @@ export default function Apply_progress({ data = sampleApps }) {
                 </div>
               </div>
             </nav>
-       <main className="section" style={{marginTop: "30px"}}>
+          <p className="subheading">Application Progress and Saved</p>
+       <main className="section" style={{marginTop: "10px"}}>
       <div className="tabs" role="tablist" aria-label="Applications Status">
         {TABS.map((t) => (
           <button
@@ -157,7 +159,6 @@ export default function Apply_progress({ data = sampleApps }) {
         )}
       </div>
 </main>
-      {/* 组件内样式：可拷到你的全局 CSS */}
       <style>{`
        *{box-sizing:border-box}
        
@@ -170,21 +171,12 @@ export default function Apply_progress({ data = sampleApps }) {
          color:#fff; 
          box-shadow:var(--ring)}
 
-        .muted{color:var(--muted); font-size:14px}
-        .cta{margin-top:auto; display:flex; gap:8px}
-
         .app-board { max-width: 860px; margin: 24px auto; padding: 16px; }
-        .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-        .tab-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 14px; border-radius: 12px; border: 1px solid #e5e7eb;
-          background: #fff; color: #374151; cursor: pointer; font-weight: 600;
-        }
-        .tab-btn:hover { border-color: #a7f3d0; color: #111827; }
-        .tab-btn.active {
-          background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.45);
-          color: #065f46; box-shadow: 0 0 0 3px rgba(16,185,129,.15);
-        }
+        .tabs { display: flex; 
+        gap: 8px; 
+        flex-wrap: wrap; 
+        margin-bottom: 16px; }
+       
         .badge {
           display:inline-flex; align-items:center; justify-content:center;
           height: 22px; min-width: 22px; padding: 0 6px;
