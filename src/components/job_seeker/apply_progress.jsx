@@ -4,6 +4,7 @@ import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
 import {NavLink} from "react-router-dom";
 import {logout} from "../../services/authService";
+import PropTypes from "prop-types";
 
 
 const sampleApps = [
