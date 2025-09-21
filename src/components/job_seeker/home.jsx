@@ -38,7 +38,6 @@ export default function Home() {
   const RoleDetect =async()=>{
     if(localStorage.getItem("jobspring_role")=="2")
      {navigate("/admin");return;}
-    else{}
   };
 
 
