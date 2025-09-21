@@ -19,7 +19,19 @@ export default function Login() {
             const data = await login(form);
             localStorage.setItem("jobspring_token", data.token);
             localStorage.setItem("jobspring_user", JSON.stringify(data.user));
-            navigate("/home");
+            switch (data.user.role) {
+                case 0: // Candidate
+                    navigate("/home");
+                    break;
+                case 1: // HR
+                    navigate("/hr");
+                    break;
+                case 2: // Admin
+                    navigate("/admin");
+                    break;
+                default:
+                    navigate("/home");
+            }
         } catch (error) {
             setMsg(error?.response?.data?.message || "Login failed");
         }
@@ -27,7 +39,7 @@ export default function Login() {
 
     return (
         <div style={{marginTop: "-20px"}}>
-            <div className="logo" >
+            <div className="logo">
                 <img
                     src={jobSpringLogo}
                     alt="JobSpring Logo"
@@ -42,7 +54,7 @@ export default function Login() {
                 borderRadius: "12px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 fontFamily: "Segoe UI, sans-serif",
-                transform: "translateY(-25px)" 
+                transform: "translateY(-25px)"
             }}>
 
                 <h2 style={{
