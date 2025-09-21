@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
+import {logout} from "../../services/authService";
 
 export default function Profile() {
     // input 的 state
@@ -25,7 +26,7 @@ export default function Profile() {
     const [endDateSchool, setEndDateSchool] = useState(null);
     const [startDateWork, setStartDateWork] = useState(null);
     const [endDateWork, setEndDateWork] = useState(null);
-
+    const [isAuthed, setIsAuthed] = useState(false);
     // select 单独 state
     const [visibility, setVisibility] = useState("2");
     const [level, setLevel] = useState("3");
@@ -33,9 +34,10 @@ export default function Profile() {
 
     // 初始化时请求后端数据
     useEffect(() => {
+        checklogin();
         const fetchProfile = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/profile", {
+                const response = await axios.get("/api/profile", {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": "Bearer dummy-jwt-token" // 需要换成登录后保存的 token
@@ -74,10 +76,22 @@ export default function Profile() {
         fetchProfile();
     }, []);
 
+          const logoutt = async () => {
+            logout();
+            window.location.reload();
+          };
+        
+            const checklogin = async () => {
+            if (!localStorage.getItem("jobspring_token")) {
+              setIsAuthed(false);
+            }
+            else{setIsAuthed(true);}
+          };
+
     useEffect(() => {
         const fetchSkills = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/skills", {
+                const response = await axios.get("/api/skills", {
                     headers: {
                         "Content-Type": "application/json"
                     }
@@ -166,23 +180,38 @@ export default function Profile() {
                         />
                     </div>
                     <div className="spacer" />
-                    <div className="tabs" role="tablist" aria-label="Primary">
-                        {[
-                            { key: "home", label: "Home", to: "/home" },
-                            { key: "community", label: "Community", to: "/community" },
-                            { key: "profile", label: "Profile", to: "/profile" },
-                        ].map((t) => (
-                            <NavLink
-                                key={t.key}
-                                to={t.to}
-                                className={({ isActive }) =>
-                                    `tab-btn ${isActive ? "active" : ""}`
-                                }
-                            >
-                                {t.label}
-                            </NavLink>
-                        ))}
-                    </div>
+                     <div className="tabs" role="tablist" aria-label="Primary">
+                                {(isAuthed
+                              ? [
+                                  { key: "home", label: "Home", to: "/home" },
+                                  { key: "community", label: "Community", to: "/community" },
+                                  { key: "profile", label: "Profile", to: "/profile" },
+                                  { key: "logout", label: "logout", action: "logoutt" },
+                                ]
+                              : [
+                                  { key: "home", label: "Home", to: "/home" },
+                                  { key: "community", label: "Community", to: "/community" },
+                                  { key: "login", label: "Login", to: "/auth/login" },
+                                  { key: "register", label: "Register", to: "/auth/register" },
+                                ]).map((t) =>  t.action === "logoutt" ?(
+                                  <button
+                                  key={t.key}
+                                  type="button"
+                                  className="tab-btn"
+                                  onClick={() => logoutt()}        
+                                >
+                                  {t.label}
+                                </button>
+                              ) : (
+                                <NavLink
+                                  key={t.key}
+                                  to={t.to}
+                                  className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
+                                >
+                                  {t.label}
+                                </NavLink>
+                              ))}
+                              </div>
                 </div>
             </nav>
 
@@ -338,7 +367,7 @@ export default function Profile() {
                             <option value="">-- Select a Skill --</option>
                             {["Backend", "Frontend", "Database", "DevOps", "Cloud", "Tools", "CI/CD", "System", "Methodology"].map(cat => (
                                 <optgroup key={cat} label={cat}>
-                                    {skillsList
+                                    {(Array.isArray(skillsList) ? skillsList : [])
                                         .filter(s => s.category === cat)
                                         .map(s => (
                                             <option key={s.name} value={s.name}>{s.name}</option>

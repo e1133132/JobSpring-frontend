@@ -24,8 +24,8 @@ export default function Register() {
     };
 
     return (
-        <div>
-            <div className="logo" style={{marginTop: "-100px"}}>
+        <div style={{marginTop: "-20px"}}>
+            <div className="logo" >
                 <img
                     src={jobSpringLogo}
                     alt="JobSpring Logo"
@@ -33,7 +33,6 @@ export default function Register() {
                 />
             </div>
 
-            {/* 卡片容器 */}
             <div style={{
                 maxWidth: 400,
                 margin: "4rem auto",
@@ -41,7 +40,8 @@ export default function Register() {
                 background: "#fafafa",
                 borderRadius: "12px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                fontFamily: "Segoe UI, sans-serif"
+                fontFamily: "Segoe UI, sans-serif",
+                transform: "translateY(-30px)" 
             }}>
                 <h2 style={{
                     textAlign: "center",

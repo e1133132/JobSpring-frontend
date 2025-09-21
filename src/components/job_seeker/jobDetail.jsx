@@ -3,12 +3,15 @@ import {useParams, NavLink} from "react-router-dom";
 import "../../App.css";
 import jobSpringLogo from "../../assets/jobspringt.png";
 import api from "../../services/api.js";
+import {logout} from "../../services/authService";
 
 export default function JobDetail() {
     const {id} = useParams();
     const [job, setJob] = useState(null);
+    const [isAuthed, setIsAuthed] = useState(false);
 
     useEffect(() => {
+        checklogin();
         const fetchJob = async () => {
             try {
                 const response = await api.get('/api/job_seeker/job_list');
@@ -21,6 +24,19 @@ export default function JobDetail() {
         };
         fetchJob();
     }, [id]);
+
+      const logoutt = async () => {
+        logout();
+        window.location.reload();
+      };
+    
+        const checklogin = async () => {
+        if (!localStorage.getItem("jobspring_token")) {
+          setIsAuthed(false);
+        }
+        else{setIsAuthed(true);}
+      };
+    
 
     if (!job) return <div className="section">Job not found.</div>;
 
@@ -67,21 +83,38 @@ export default function JobDetail() {
                         <img src={jobSpringLogo} alt="JobSpring Logo" style={{width: "260px", height: "auto"}}/>
                     </div>
                     <div className="spacer"/>
-                    <div className="tabs" role="tablist" aria-label="Primary">
-                        {[
-                            {key: "home", label: "Home", to: "/home"},
-                            {key: "community", label: "Community", to: "/community"},
-                            {key: "profile", label: "Profile", to: "/profile"},
-                        ].map((t) => (
-                            <NavLink
-                                key={t.key}
-                                to={t.to}
-                                className={({isActive}) => `tab-btn ${isActive ? "active" : ""}`}
-                            >
-                                {t.label}
-                            </NavLink>
-                        ))}
-                    </div>
+                     <div className="tabs" role="tablist" aria-label="Primary">
+                                {(isAuthed
+                              ? [
+                                  { key: "home", label: "Home", to: "/home" },
+                                  { key: "community", label: "Community", to: "/community" },
+                                  { key: "profile", label: "Profile", to: "/profile" },
+                                  { key: "logout", label: "logout", action: "logoutt" },
+                                ]
+                              : [
+                                  { key: "home", label: "Home", to: "/home" },
+                                  { key: "community", label: "Community", to: "/community" },
+                                  { key: "login", label: "Login", to: "/auth/login" },
+                                  { key: "register", label: "Register", to: "/auth/register" },
+                                ]).map((t) =>  t.action === "logoutt" ?(
+                                  <button
+                                  key={t.key}
+                                  type="button"
+                                  className="tab-btn"
+                                  onClick={() => logoutt()}        
+                                >
+                                  {t.label}
+                                </button>
+                              ) : (
+                                <NavLink
+                                  key={t.key}
+                                  to={t.to}
+                                  className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
+                                >
+                                  {t.label}
+                                </NavLink>
+                              ))}
+                              </div>
                 </div>
             </nav>
 

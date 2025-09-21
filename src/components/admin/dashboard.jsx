@@ -176,8 +176,12 @@ export default function AdminDashboard() {
         }
         .input{
           flex: 2 1 520px;                
-          height: 46px; padding: 0 14px; border-radius: 12px;
-          border: 1px solid var(--border); background: #fff; color: var(--text);
+          height: 46px; 
+          padding: 0 14px; 
+          border-radius: 12px;
+          border: 1px solid var(--border); 
+          background: #fff; 
+          color: var(--text);
         }
         .input::placeholder{ color:#9aa3af; }
         .input:focus{ outline:none; border-color: rgba(34,197,94,.55); box-shadow: var(--ring); }
