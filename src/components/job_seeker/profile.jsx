@@ -26,7 +26,6 @@ export default function Profile() {
     const [endDateSchool, setEndDateSchool] = useState(null);
     const [startDateWork, setStartDateWork] = useState(null);
     const [endDateWork, setEndDateWork] = useState(null);
-    const [isAuthed, setIsAuthed] = useState(false);
     // select 单独 state
     const [visibility, setVisibility] = useState("2");
     const [level, setLevel] = useState("3");
@@ -34,7 +33,6 @@ export default function Profile() {
 
     // 初始化时请求后端数据
     useEffect(() => {
-        checklogin();
         const fetchProfile = async () => {
             try {
                 const response = await axios.get("/api/profile", {
@@ -81,12 +79,7 @@ export default function Profile() {
         window.location.reload();
     };
 
-    const checklogin = async () => {
-        if (!localStorage.getItem("jobspring_token")) {
-            setIsAuthed(false);
-        }
-        else { setIsAuthed(true); }
-    };
+
 
     useEffect(() => {
         const fetchSkills = async () => {

@@ -29,8 +29,7 @@ export default function Home() {
       setJobPosition(response.data.content);
     } catch (error) {
       console.error('Error fetching JobPosition:', error);
-    } finally {
-    }
+    } 
   };
 
   const filtered = useMemo(() => {

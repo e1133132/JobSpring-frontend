@@ -11,11 +11,10 @@ const INITIAL_JOBS = [
 ];
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("jobs");
+  const [activeTab, ] = useState("jobs");
   const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const filtered = useMemo(() => {
