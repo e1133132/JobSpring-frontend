@@ -24,7 +24,7 @@ export default function Login() {
                     navigate("/home");
                     break;
                 case 1: // HR
-                    navigate("/hr");
+                    navigate("/home");
                     break;
                 case 2: // Admin
                     navigate("/admin");
