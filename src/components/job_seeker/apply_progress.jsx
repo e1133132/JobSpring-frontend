@@ -1,10 +1,8 @@
-
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import "../../App.css";
-import jobSpringLogo from "../../assets/jobspringt.png";
-import {NavLink} from "react-router-dom";
-import {logout} from "../../services/authService";
 import PropTypes from "prop-types";
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
 
 
 const sampleApps = [
@@ -18,7 +16,7 @@ const TABS = [
   { key: "submitted", label: "Submitted" },
   { key: "viewed", label: "Viewed" },
   { key: "resume_passed", label: "Resume Passed" },
-  {key: "saved", label: "saved" }
+  { key: "saved", label: "saved" }
 ];
 
 function formatDate(iso) {
@@ -37,22 +35,8 @@ function formatDate(iso) {
 
 export default function Apply_progress({ data = sampleApps }) {
   const [active, setActive] = useState("submitted");
-  const [isAuthed, setIsAuthed] = useState(false);
-    useEffect(() => {
-      checklogin();
-    }, []);
-  
-    const logoutt = async () => {
-      logout();
-      window.location.reload();
-    };
-  
-      const checklogin = async () => {
-      if (!localStorage.getItem("jobspring_token")) {
-        setIsAuthed(false);
-      }
-      else{setIsAuthed(true);}
-    };
+  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
   // 防御：保证是数组，并按申请时间倒序
   const safeData = useMemo(() => {
@@ -64,9 +48,9 @@ export default function Apply_progress({ data = sampleApps }) {
   const counts = useMemo(() => {
     const c = { submitted: 0, viewed: 0, resume_passed: 0 };
     for (const it of safeData) {
-     if (it?.status && (Object.hasOwn?.(c, it.status) || Object.prototype.hasOwnProperty.call(c, it.status))) {
-     c[it.status]++;
-}
+      if (it?.status && (Object.hasOwn?.(c, it.status) || Object.prototype.hasOwnProperty.call(c, it.status))) {
+        c[it.status]++;
+      }
     }
     return c;
   }, [safeData]);
@@ -79,104 +63,47 @@ export default function Apply_progress({ data = sampleApps }) {
 
   return (
     <div className="app-root">
-      <nav className="nav">
-              <div className="nav-inner">
-                <div className="logo">
-                  <img
-                    src={jobSpringLogo}
-                    alt="JobSpring Logo"
-                    style={{ width: "260px", height: "auto" }}
-                  />
-      
-                </div>
-                <div className="spacer" />
-                <div className="tabs" role="tablist" aria-label="Primary">
-                  {(isAuthed
-                ? [
-                    { key: "home", label: "Home", to: "/home" },
-                    { key: "community", label: "Community", to: "/community" },
-                    { key: "profile", label: "Profile", to: "/profile" },
-                    { key: "logout", label: "logout", action: "logoutt" },
-                  ]
-                : [
-                    { key: "home", label: "Home", to: "/home" },
-                    { key: "community", label: "Community", to: "/community" },
-                    { key: "login", label: "Login", to: "/auth/login" },
-                    { key: "register", label: "Register", to: "/auth/register" },
-                  ]).map((t) =>  t.action === "logoutt" ?(
-                    <button
-                    key={t.key}
-                    type="button"
-                    className="tab-btn"
-                    onClick={() => logoutt()}        
-                  >
-                    {t.label}
-                  </button>
-                ) : (
-                  <NavLink
-                    key={t.key}
-                    to={t.to}
-                    className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
-                  >
-                    {t.label}
-                  </NavLink>
-                ))}
-                </div>
-              </div>
-            </nav>
-          <p className="subheading">Application Progress and Saved</p>
-       <main className="section" style={{marginTop: "10px"}}>
-      <div className="tabs" role="tablist" aria-label="Applications Status">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`tab-btn ${active === t.key ? "active" : ""}`}
-            onClick={() => setActive(t.key)}
-            role="tab"
-            aria-selected={active === t.key}
-          >
-            {t.label}
-            <span className="badge">{counts[t.key] ?? 0}</span>
-          </button>
-        ))}
-      </div>
+      <Navigation role={role} username={name} />
+      <p className="subheading">Application Progress and Saved</p>
+      <main className="section" style={{ marginTop: "10px" }}>
+        <div className="tabs" role="tablist" aria-label="Applications Status">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              className={`tab-btn ${active === t.key ? "active" : ""}`}
+              onClick={() => setActive(t.key)}
+              role="tab"
+              aria-selected={active === t.key}
+            >
+              {t.label}
+              <span className="badge">{counts[t.key] ?? 0}</span>
+            </button>
+          ))}
+        </div>
 
-      {/* 列表 */}
-      <div className="list">
-        {currentList.length === 0 ? (
-          <div className="empty">No applications in this status.</div>
-        ) : (
-          currentList.map((it) => (
-            <div key={it.id} className="app-card">
-              <div className="app-title">{it.title}</div>
-              <div className="app-meta">
-                <span className="company">{it.company}</span>
-                <span className="dot">•</span>
-                <span className="date">{formatDate(it.appliedAt)}</span>
+        {/* 列表 */}
+        <div className="list">
+          {currentList.length === 0 ? (
+            <div className="empty">No applications in this status.</div>
+          ) : (
+            currentList.map((it) => (
+              <div key={it.id} className="app-card">
+                <div className="app-title">{it.title}</div>
+                <div className="app-meta">
+                  <span className="company">{it.company}</span>
+                  <span className="dot">•</span>
+                  <span className="date">{formatDate(it.appliedAt)}</span>
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
-</main>
+            ))
+          )}
+        </div>
+      </main>
       <style>{`
        *{box-sizing:border-box}
-       
-        .logo{display:flex; align-items:center; gap:10px}
-        .logo-mark{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:grid; place-items:center; box-shadow:var(--shadow)}
-        .logo-mark span{font-weight:800; color:#0b1220}
-        .brand{font-weight:700; letter-spacing:.3px}
-        .spacer{flex:1}
 
-         color:#fff; 
          box-shadow:var(--ring)}
-
         .app-board { max-width: 860px; margin: 24px auto; padding: 16px; }
-        .tabs { display: flex; 
-        gap: 8px; 
-        flex-wrap: wrap; 
-        margin-bottom: 16px; }
-       
         .badge {
           display:inline-flex; align-items:center; justify-content:center;
           height: 22px; min-width: 22px; padding: 0 6px;

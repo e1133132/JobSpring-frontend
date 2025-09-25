@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from "react";
 import Profile from "./profile";
-import jobSpringLogo from "../../assets/jobspringt.png";
-import {logout} from "../../services/authService";
-import {useNavigate} from "react-router-dom";
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
 
 const INITIAL_JOBS = [
   { id: 1, title: "Frontend Engineer", company: "LHT Digital", status: "active" },
@@ -11,12 +10,12 @@ const INITIAL_JOBS = [
 ];
 
 export default function AdminDashboard() {
-   const navigate = useNavigate();
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("jobs");
-
+  const [activeTab, ] = useState("jobs");
+  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
     return jobs.filter((j) => {
@@ -27,7 +26,7 @@ export default function AdminDashboard() {
     });
   }, [jobs, q, filter]);
 
-  
+
   const markInvalid = (id) => {
     setJobs((prev) =>
       prev.map((j) =>
@@ -37,10 +36,6 @@ export default function AdminDashboard() {
       )
     );
   };
-  const logoutt = async () => {
-    logout();
-    navigate("/auth/login");
-  };
 
   const removeJob = (id) => {
     setJobs((prev) => prev.filter((j) => j.id !== id));
@@ -48,39 +43,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-root">
-      <nav className="nav" aria-label="Primary">
-        <div className="nav-inner">
-          <div className="brand">
-            <img
-              src={jobSpringLogo}
-              alt="JobSpring Logo"
-              style={{ width: "260px", height: "auto" }}
-            />
-            <div className="brand-title">JobPring Admin</div>
-          </div>
-          <div className="spacer" />
-         <div className="tabs" role="tablist" aria-label="Main tabs">
-          {[
-            { key: "jobs", label: "Jobs" },
-            { key: "profile", label: "Profile" },
-            { key: "logout", label: "Logout", action: "logoutt" },
-          ].map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              role={t.action === "logoutt" ? "button" : "tab"}                 // 登出不是tab
-              aria-selected={t.action === "logoutt" ? undefined : activeTab === t.key}
-              className={`tab-btn ${activeTab === t.key ? "active" : ""}`}
-              onClick={() =>
-                t.action === "logoutt" ? logoutt() : setActiveTab(t.key)
-              }
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        </div>
-      </nav>
+      <Navigation role={role} username={name} />
 
       <div className="container">
         <section className="toolbar" aria-label="Filters">

@@ -1,17 +1,17 @@
-import React, {useEffect, useState} from "react";
-import {useParams, NavLink} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import "../../App.css";
-import jobSpringLogo from "../../assets/jobspringt.png";
 import api from "../../services/api.js";
-import {logout} from "../../services/authService";
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
 
 export default function JobDetail() {
-    const {id} = useParams();
+    const { id } = useParams();
     const [job, setJob] = useState(null);
-    const [isAuthed, setIsAuthed] = useState(false);
+    const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+    const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
     useEffect(() => {
-        checklogin();
         const fetchJob = async () => {
             try {
                 const response = await api.get('/api/job_seeker/job_list');
@@ -25,18 +25,6 @@ export default function JobDetail() {
         fetchJob();
     }, [id]);
 
-      const logoutt = async () => {
-        logout();
-        window.location.reload();
-      };
-    
-        const checklogin = async () => {
-        if (!localStorage.getItem("jobspring_token")) {
-          setIsAuthed(false);
-        }
-        else{setIsAuthed(true);}
-      };
-    
 
     if (!job) return <div className="section">Job not found.</div>;
 
@@ -77,46 +65,7 @@ export default function JobDetail() {
 
     return (
         <div className="app-root">
-            <nav className="nav">
-                <div className="nav-inner">
-                    <div className="logo">
-                        <img src={jobSpringLogo} alt="JobSpring Logo" style={{width: "260px", height: "auto"}}/>
-                    </div>
-                    <div className="spacer"/>
-                     <div className="tabs" role="tablist" aria-label="Primary">
-                                {(isAuthed
-                              ? [
-                                  { key: "home", label: "Home", to: "/home" },
-                                  { key: "community", label: "Community", to: "/community" },
-                                  { key: "profile", label: "Profile", to: "/profile" },
-                                  { key: "logout", label: "logout", action: "logoutt" },
-                                ]
-                              : [
-                                  { key: "home", label: "Home", to: "/home" },
-                                  { key: "community", label: "Community", to: "/community" },
-                                  { key: "login", label: "Login", to: "/auth/login" },
-                                  { key: "register", label: "Register", to: "/auth/register" },
-                                ]).map((t) =>  t.action === "logoutt" ?(
-                                  <button
-                                  key={t.key}
-                                  type="button"
-                                  className="tab-btn"
-                                  onClick={() => logoutt()}        
-                                >
-                                  {t.label}
-                                </button>
-                              ) : (
-                                <NavLink
-                                  key={t.key}
-                                  to={t.to}
-                                  className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
-                                >
-                                  {t.label}
-                                </NavLink>
-                              ))}
-                              </div>
-                </div>
-            </nav>
+            <Navigation role={role} username={name} />
 
             <main
                 className="section"
@@ -133,35 +82,35 @@ export default function JobDetail() {
                 }}
             >
                 {/* 左边 */}
-                <div style={{flex: "2 1 600px", minWidth: "300px"}}>
-                    <article className="card" style={{padding: "24px"}}>
-                        <h1 style={{fontSize: "28px", fontWeight: "700", marginBottom: "12px"}}>
+                <div style={{ flex: "2 1 600px", minWidth: "300px" }}>
+                    <article className="card" style={{ padding: "24px" }}>
+                        <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "12px" }}>
                             {job.title}
                         </h1>
-                        <div className="muted" style={{marginBottom: "20px"}}>
-  <span style={{fontWeight: 600, color: "#16a34a"}}>
-    {job.salaryMin ? job.salaryMin : "N/A"} - {job.salaryMax ? job.salaryMax : "N/A"} SGD
-  </span>
+                        <div className="muted" style={{ marginBottom: "20px" }}>
+                            <span style={{ fontWeight: 600, color: "#16a34a" }}>
+                                {job.salaryMin ? job.salaryMin : "N/A"} - {job.salaryMax ? job.salaryMax : "N/A"} SGD
+                            </span>
                             {" · "}
                             {job.location || "N/A"} {" · "}
                             {typeText} {" · "}
                             Posted at {formatDate(job.postedAt)}
                         </div>
 
-                        <h3 style={{marginBottom: "10px"}}>Job Description</h3>
-                        <p style={{lineHeight: 1.6, color: "#333"}}>{job.description}</p>
+                        <h3 style={{ marginBottom: "10px" }}>Job Description</h3>
+                        <p style={{ lineHeight: 1.6, color: "#333" }}>{job.description}</p>
 
-                        <div className="cta" style={{marginTop: "20px"}}>
+                        <div className="cta" style={{ marginTop: "20px" }}>
                             <button className="btn" onClick={handleApply}>Apply Now</button>
                         </div>
                     </article>
                 </div>
 
                 {/* 右边 */}
-                <div style={{flex: "1 1 300px", minWidth: "260px"}}>
-                    <article className="card" style={{padding: "20px"}}>
-                        <h3 style={{marginBottom: "10px"}}>Company Info</h3>
-                        <p style={{fontWeight: 600}}>Name:{job.company}</p>
+                <div style={{ flex: "1 1 300px", minWidth: "260px" }}>
+                    <article className="card" style={{ padding: "20px" }}>
+                        <h3 style={{ marginBottom: "10px" }}>Company Info</h3>
+                        <p style={{ fontWeight: 600 }}>Name:{job.company}</p>
                         <p className="muted">Location: {job.location}</p>
                     </article>
                 </div>
@@ -201,7 +150,7 @@ export default function JobDetail() {
         }
       `}</style>
 
-            <footer className="section" style={{paddingBottom: 40, textAlign: "center"}}>
+            <footer className="section" style={{ paddingBottom: 40, textAlign: "center" }}>
                 <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
             </footer>
         </div>

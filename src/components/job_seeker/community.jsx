@@ -2,32 +2,29 @@ import React, { useEffect, useMemo, useState } from "react";
 import "../../App.css";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
-import jobSpringLogo from "../../assets/jobspringt.png";
-import {logout} from "../../services/authService";
-
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
 
 export default function Community() {
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState({ title: "", content: "" });
   const [submitting, setSubmitting] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
 
-useEffect(() => {
-      checklogin();
-    }, []);
-  
-    const logoutt = async () => {
-      logout();
-      window.location.reload();
-    };
-  
-      const checklogin = async () => {
-      if (!localStorage.getItem("jobspring_token")) {
-        setIsAuthed(false);
-      }
-      else{setIsAuthed(true);}
-    };
+  useEffect(() => {
+    checklogin();
+  }, []);
+
+
+  const checklogin = async () => {
+    if (!localStorage.getItem("jobspring_token")) {
+      setIsAuthed(false);
+    }
+    else { setIsAuthed(true); }
+  };
   useEffect(() => {
     loadPosts();
   }, []);
@@ -122,109 +119,64 @@ useEffect(() => {
 
   return (
     <div className="app-root">
-          <nav className="nav">
-                <div className="nav-inner">
-                  <div className="logo">
-                    <img
-                      src={jobSpringLogo}
-                      alt="JobSpring Logo"
-                      style={{ width: "260px", height: "auto" }}
-                    />
-        
-                  </div>
-                  <div className="spacer" />
-                  <div className="tabs" role="tablist" aria-label="Primary">
-                    {(isAuthed
-                  ? [
-                      { key: "home", label: "Home", to: "/home" },
-                      { key: "community", label: "Community", to: "/community" },
-                      { key: "profile", label: "Profile", to: "/profile" },
-                      { key: "logout", label: "logout", action: "logoutt" },
-                    ]
-                  : [
-                      { key: "home", label: "Home", to: "/home" },
-                      { key: "community", label: "Community", to: "/community" },
-                      { key: "login", label: "Login", to: "/auth/login" },
-                      { key: "register", label: "Register", to: "/auth/register" },
-                    ]).map((t) =>  t.action === "logoutt" ?(
-                      <button
-                      key={t.key}
-                      type="button"
-                      className="tab-btn"
-                      onClick={() => logoutt()}        
-                    >
-                      {t.label}
-                    </button>
-                  ) : (
-                    <NavLink
-                      key={t.key}
-                      to={t.to}
-                      className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
-                    >
-                      {t.label}
-                    </NavLink>
-                  ))}
-                  </div>
-                </div>
-              </nav>
-
+      <Navigation role={role} username={name} />
       <p className="subheading1">Community</p>
- <main className="section" style={{marginTop: "0px"}}>
-      {!isAuthed && (
-        <div className="notice">
-          You need to <NavLink to="/auth/login">login</NavLink> to post.
-        </div>
-      )}
-
-      <form className="card post-form" onSubmit={onSubmit}>
-        <input
-          className="input"
-          placeholder="Post title"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-        <textarea
-          className="textarea"
-          rows={4}
-          placeholder="Write something helpful…"
-          value={form.content}
-          onChange={(e) => setForm({ ...form, content: e.target.value })}
-        />
-        <div className="actions">
-          <button
-            className="btn"
-            type="submit"
-            disabled={
-              !isAuthed ||
-              submitting ||
-              !form.title.trim() ||
-              !form.content.trim()
-            }
-          >
-            {submitting ? "Posting…" : "Post"}
-          </button>
-        </div>
-      </form>
-
-      <div className="posts">
-        {ordered.length === 0 ? (
-          <div className="empty">No posts yet.</div>
-        ) : (
-          ordered.map((p) => (
-            <article key={p.id} className="post">
-              <h3 className="post-title">{p.title}</h3>
-              <div className="post-meta">
-                <span className="author">{p.author}</span>
-                <span className="dot">•</span>
-                <span className="date">{formatDate(p.createdAt)}</span>
-              </div>
-              <p className="post-content">{p.content}</p>
-            </article>
-          ))
+      <main className="section" style={{ marginTop: "0px" }}>
+        {!isAuthed && (
+          <div className="notice">
+            You need to <NavLink to="/auth/login">login</NavLink> to post.
+          </div>
         )}
 
-      </div>
-       </main>
+        <form className="card post-form" onSubmit={onSubmit}>
+          <input
+            className="input"
+            placeholder="Post title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <textarea
+            className="textarea"
+            rows={4}
+            placeholder="Write something helpful…"
+            value={form.content}
+            onChange={(e) => setForm({ ...form, content: e.target.value })}
+          />
+          <div className="actions">
+            <button
+              className="btn"
+              type="submit"
+              disabled={
+                !isAuthed ||
+                submitting ||
+                !form.title.trim() ||
+                !form.content.trim()
+              }
+            >
+              {submitting ? "Posting…" : "Post"}
+            </button>
+          </div>
+        </form>
+
+        <div className="posts">
+          {ordered.length === 0 ? (
+            <div className="empty">No posts yet.</div>
+          ) : (
+            ordered.map((p) => (
+              <article key={p.id} className="post">
+                <h3 className="post-title">{p.title}</h3>
+                <div className="post-meta">
+                  <span className="author">{p.author}</span>
+                  <span className="dot">•</span>
+                  <span className="date">{formatDate(p.createdAt)}</span>
+                </div>
+                <p className="post-content">{p.content}</p>
+              </article>
+            ))
+          )}
+
+        </div>
+      </main>
 
       <style>{`
         *{box-sizing:border-box}

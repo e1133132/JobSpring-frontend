@@ -1,41 +1,145 @@
-// navigation.jsx
-import React from "react";
-//import "./navigation.css"; // 可选，单独抽离样式
-import { NavLink } from "react-router-dom";
+// src/components/Navigation.jsx
+import React, { useMemo, useState } from "react";
+import { NavLink} from "react-router-dom";
+import { logout } from "../services/authService";
+import jobSpringLogo from "../assets/jobspringt.png";
+import PropTypes from "prop-types";
 
-export default function Navigation() {
-  //const [active, setActive] = useState("home");
+function buildTopMenus(role) {
+  if (role === "guest") {
+    return [
+      { key: "home", label: "Home", to: "/home" },
+      { key: "community", label: "Community", to: "/community" },
+      { key: "login", label: "Login", to: "/auth/login" },
+      { key: "register", label: "Register", to: "/auth/register" },
+    ];
+  }
+  if (role === 0) { // job seeker
+    return [
+      { key: "home", label: "Home", to: "/home" },
+      { key: "community", label: "Community", to: "/community" },
+      { key: "logout", label: "logout", action: "logoutUser" },
+    ];
+  }
+  if (role === 1) { // hr
+    return [
+      { key: "home", label: "Home", to: "/home" },
+      { key: "community", label: "Community", to: "/community" },
+      { key: "logout", label: "logout", action: "logoutUser" },
+    ];
+  }
+  if (role === 2) { // admin
+    return [
+      { key: "jobs", label: "manage job position", to: "/admin/jobs" },
+      { key: "audit", label: "Audit review", to: "/admin/audit" },
+      { key: "logout", label: "Logout", action: "logoutUser" },
+    ];
+  }
 
-  const navItems = [
-    { key: "home", label: "Home", to: "/" },
+  return [
+    { key: "home", label: "Home", to: "/home" },
     { key: "community", label: "Community", to: "/community" },
-    { key: "profile", label: "Profile", to: "/profile" },
+    { key: "login", label: "Login", to: "/auth/login" },
+    { key: "register", label: "Register", to: "/auth/register" },
   ];
+}
+
+function buildDropdown(role) {
+  if (role === 0) {
+    return [
+      { key: "profile", label: "Profile", to: "/profile" },
+      { key: "application", label: "Application", to: "/applications" },
+      { key: "upload-review", label: "Upload review", to: "/reviews/upload" },
+    ];
+  }
+  if (role === 1) {
+    return [
+      { key: "profile", label: "Profile", to: "/profile" },
+      { key: "application", label: "Application", to: "/applications" },
+      { key: "post-job", label: "Post job position", to: "/hr/post-job" },
+    ];
+  }
+  return [];
+}
+
+export default function Navigation({ role = "guest", username = "guest" }) {
+  const [open, setOpen] = useState(false);
+  // const navigate = useNavigate();
+  console.log(role);
+  const menus = buildTopMenus(role);
+  const dropdown = useMemo(() => buildDropdown(role), [role]);
+
+  const logoutUser = async () => {
+    logout();
+    window.location.reload();
+  };
 
   return (
-    <nav className="nav">
-      <div className="nav-inner">
-        {/* Logo */}
-        <div className="logo">
-          <div className="logo-mark">∞</div>
-          <span className="brand">MySite</span>
-        </div>
+    <div>
+      <nav className="nav">
+        <div className="nav-inner">
+          <div className="logo">
+            <img
+              src={jobSpringLogo}
+              alt="JobSpring Logo"
+              style={{ width: "260px", height: "auto" }}
+            />
 
-        {/* 导航按钮 */}
-        <div className="tabs">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.key}
-              to={item.to}
-              className={({ isActive }) =>
-                  `tab-btn ${isActive ? "active" : ""}`
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          </div>
+          <div className="spacer" />
+          <div className="tabs" role="tablist" aria-label="Primary">
+            {menus.map((t) =>
+              t.action === "logoutUser" ? (
+                <button
+                  key={t.key}
+                  type="button"
+                  className="tab-btn"
+                  onClick={logoutUser}
+                >
+                  {t.label}
+                </button>
+              ) : (
+                <NavLink
+                  key={t.key}
+                  to={t.to}
+                  className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
+                >
+                  {t.label}
+                </NavLink>
+              )
+            )}
+          </div>
+          {(role === 0 || role === 1) && (
+            <div className="user">
+              <button
+                className="user-btn"
+                aria-haspopup="menu"
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+              >
+                <span style={{ fontWeight: 700 }}>{username || "User"}</span>
+                <span aria-hidden>▾</span>
+              </button>
+              {open && (
+                <div className="menu" role="menu">
+                  {dropdown.map((d) => (
+                    <NavLink key={d.key} to={d.to} onClick={() => setOpen(false)}>
+                      {d.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
+Navigation.propTypes = {
+  role: PropTypes.oneOfType([
+    PropTypes.oneOf(["guest"]),
+    PropTypes.oneOf([0, 1, 2]),
+  ]),
+  username: PropTypes.string,
+};
