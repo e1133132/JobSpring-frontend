@@ -1,15 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, {  useState } from "react";
 import Navigation from "../navigation.jsx";
 import { getCurrentUser } from "../../services/authService";
+import PropTypes from "prop-types";
 
-
-const JOB_TYPES = [
-    { value: "full_time", label: "full time" },
-    { value: "part_time", label: "part time" },
-    { value: "contract", label: "contract" },
-    { value: "intern", label: "internship" },
-    { value: "remote", label: "remote" },
-];
+// const JOB_TYPES = [
+//     { value: "full_time", label: "full time" },
+//     { value: "part_time", label: "part time" },
+//     { value: "contract", label: "contract" },
+//     { value: "intern", label: "internship" },
+//     { value: "remote", label: "remote" },
+// ];
 
 const initialState = {
     title: "",
@@ -314,5 +314,7 @@ export default function Post_job({ onSubmit }) {
         </div>
     );
 
-
 }
+PostJob.propTypes = {
+  onSubmit: PropTypes.func,   
+};
