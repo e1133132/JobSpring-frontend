@@ -13,8 +13,8 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [q, setq] = useState("");
   const [t, sett] = useState("all");
-  const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [type, setType] = useState("all");
   const [JobPosition, setJobPosition] = useState([]);
   const navigate = useNavigate();

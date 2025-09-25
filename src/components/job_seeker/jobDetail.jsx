@@ -8,8 +8,8 @@ import Navigation from "../navigation.jsx";
 export default function JobDetail() {
     const { id } = useParams();
     const [job, setJob] = useState(null);
-    const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-    const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+    const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+    const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
     useEffect(() => {
         const fetchJob = async () => {

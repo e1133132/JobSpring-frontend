@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import "../../App.css";
 import PropTypes from "prop-types";
 import { getCurrentUser } from "../../services/authService";
@@ -35,19 +35,8 @@ function formatDate(iso) {
 
 export default function Apply_progress({ data = sampleApps }) {
   const [active, setActive] = useState("submitted");
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
-  useEffect(() => {
-    checklogin();
-  }, []);
-
-  const checklogin = async () => {
-    if (!localStorage.getItem("jobspring_token")) {
-      setIsAuthed(false);
-    }
-    else { setIsAuthed(true); }
-  };
+  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
   // 防御：保证是数组，并按申请时间倒序
   const safeData = useMemo(() => {

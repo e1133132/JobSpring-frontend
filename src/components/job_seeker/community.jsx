@@ -10,8 +10,8 @@ export default function Community() {
   const [form, setForm] = useState({ title: "", content: "" });
   const [submitting, setSubmitting] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
-  const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+  const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
 
   useEffect(() => {

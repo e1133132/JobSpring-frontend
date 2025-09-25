@@ -9,7 +9,6 @@ import JobDetail from "./components/job_seeker/jobDetail.jsx";
 import Apply_progress from "./components/job_seeker/apply_progress.jsx";
 import Community from "./components/job_seeker/community.jsx";
 import { getCurrentUser} from "./services/authService";
-import Navigation from "./components/navigation.jsx";
 
 function RoleDetect(){
       const role = getCurrentUser()?.role;

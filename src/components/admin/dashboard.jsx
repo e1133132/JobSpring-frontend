@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from "react";
 import Profile from "./profile";
-import jobSpringLogo from "../../assets/jobspringt.png";
-import { logout } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
@@ -18,8 +16,8 @@ export default function AdminDashboard() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("jobs");
-  const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
     return jobs.filter((j) => {
@@ -39,10 +37,6 @@ export default function AdminDashboard() {
           : j
       )
     );
-  };
-  const logoutUser = async () => {
-    logout();
-    navigate("/auth/login");
   };
 
   const removeJob = (id) => {

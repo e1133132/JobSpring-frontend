@@ -19,8 +19,8 @@ export default function Profile() {
         achievements: "",
         skill: "",
     });
-    const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-    const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+    const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+    const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
     // 日期单独 state（存储为 Date 对象）
     const [startDateSchool, setStartDateSchool] = useState(null);
     const [endDateSchool, setEndDateSchool] = useState(null);
