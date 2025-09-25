@@ -3,7 +3,6 @@ import "../../App.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
-import { logout } from "../../services/authService";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 
