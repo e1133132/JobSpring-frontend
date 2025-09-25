@@ -315,6 +315,6 @@ export default function PostJob({ onSubmit }) {
     );
 
 }
-Post_job.propTypes = {
+PostJob.propTypes = {
   onSubmit: PropTypes.func, 
 };
