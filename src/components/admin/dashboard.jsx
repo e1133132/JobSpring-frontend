@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import Profile from "./profile";
-import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 

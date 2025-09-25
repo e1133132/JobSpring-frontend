@@ -74,10 +74,6 @@ export default function Profile() {
         fetchProfile();
     }, []);
 
-    const logoutUser = async () => {
-        logout();
-        window.location.reload();
-    };
 
 
 
