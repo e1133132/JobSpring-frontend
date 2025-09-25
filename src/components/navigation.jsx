@@ -1,8 +1,9 @@
 // src/components/Navigation.jsx
 import React, { useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink} from "react-router-dom";
 import { logout } from "../services/authService";
 import jobSpringLogo from "../assets/jobspringt.png";
+import PropTypes from "prop-types";
 
 function buildTopMenus(role) {
   if (role === "guest") {
@@ -61,7 +62,7 @@ function buildDropdown(role) {
   return [];
 }
 
-export default function Navigation({ role = "guest", username }) {
+export default function Navigation({ role = "guest", username = "guest" }) {
   const [open, setOpen] = useState(false);
   // const navigate = useNavigate();
   console.log(role);
@@ -135,3 +136,10 @@ export default function Navigation({ role = "guest", username }) {
     </div>
   );
 }
+Navigation.propTypes = {
+  role: PropTypes.oneOfType([
+    PropTypes.oneOf(["guest"]),
+    PropTypes.oneOf([0, 1, 2]),
+  ]),
+  username: PropTypes.string,
+};
