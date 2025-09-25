@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "../../App.css";
-import jobSpringLogo from "../../assets/jobspringt.png";
-import { NavLink } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
-import {logout} from "../../services/authService";
+import { logout } from "../../services/authService";
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
 
 export default function Profile() {
-    // input 的 state
     const [form, setForm] = useState({
         summary: "",
         school: "",
@@ -20,7 +19,8 @@ export default function Profile() {
         achievements: "",
         skill: "",
     });
-
+    const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+    const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
     // 日期单独 state（存储为 Date 对象）
     const [startDateSchool, setStartDateSchool] = useState(null);
     const [endDateSchool, setEndDateSchool] = useState(null);
@@ -76,17 +76,17 @@ export default function Profile() {
         fetchProfile();
     }, []);
 
-          const logoutt = async () => {
-            logout();
-            window.location.reload();
-          };
-        
-            const checklogin = async () => {
-            if (!localStorage.getItem("jobspring_token")) {
-              setIsAuthed(false);
-            }
-            else{setIsAuthed(true);}
-          };
+    const logoutUser = async () => {
+        logout();
+        window.location.reload();
+    };
+
+    const checklogin = async () => {
+        if (!localStorage.getItem("jobspring_token")) {
+            setIsAuthed(false);
+        }
+        else { setIsAuthed(true); }
+    };
 
     useEffect(() => {
         const fetchSkills = async () => {
@@ -169,51 +169,8 @@ export default function Profile() {
 
     return (
         <div className="app-root">
-           
-            <nav className="nav">
-                <div className="nav-inner">
-                    <div className="logo">
-                        <img
-                            src={jobSpringLogo}
-                            alt="JobSpring Logo"
-                            style={{ width: "260px", height: "auto" }}
-                        />
-                    </div>
-                    <div className="spacer" />
-                     <div className="tabs" role="tablist" aria-label="Primary">
-                                {(isAuthed
-                              ? [
-                                  { key: "home", label: "Home", to: "/home" },
-                                  { key: "community", label: "Community", to: "/community" },
-                                  { key: "profile", label: "Profile", to: "/profile" },
-                                  { key: "logout", label: "logout", action: "logoutt" },
-                                ]
-                              : [
-                                  { key: "home", label: "Home", to: "/home" },
-                                  { key: "community", label: "Community", to: "/community" },
-                                  { key: "login", label: "Login", to: "/auth/login" },
-                                  { key: "register", label: "Register", to: "/auth/register" },
-                                ]).map((t) =>  t.action === "logoutt" ?(
-                                  <button
-                                  key={t.key}
-                                  type="button"
-                                  className="tab-btn"
-                                  onClick={() => logoutt()}        
-                                >
-                                  {t.label}
-                                </button>
-                              ) : (
-                                <NavLink
-                                  key={t.key}
-                                  to={t.to}
-                                  className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
-                                >
-                                  {t.label}
-                                </NavLink>
-                              ))}
-                              </div>
-                </div>
-            </nav>
+
+            <Navigation role={role} username={name} />
 
             {/* 表单内容 */}
             <main
@@ -233,7 +190,7 @@ export default function Profile() {
                             padding: "20px",
                         }}
                     >
-                        <h2 style={{marginBottom: "10px"}}>Profile</h2>
+                        <h2 style={{ marginBottom: "10px" }}>Profile</h2>
 
                         {/* Summary */}
                         <label className="muted">Summary</label>
@@ -259,7 +216,7 @@ export default function Profile() {
                         </select>
 
                         {/* Education */}
-                        <h3 style={{marginTop: "20px"}}>Education</h3>
+                        <h3 style={{ marginTop: "20px" }}>Education</h3>
                         <label className="muted">School</label>
                         <input
                             className="search-input"
@@ -312,7 +269,7 @@ export default function Profile() {
                         />
 
                         {/* Experience */}
-                        <h3 style={{marginTop: "20px"}}>Experience</h3>
+                        <h3 style={{ marginTop: "20px" }}>Experience</h3>
                         <label className="muted">Company</label>
                         <input
                             className="search-input"
@@ -356,7 +313,7 @@ export default function Profile() {
                         />
 
                         {/* Skills */}
-                        <h3 style={{marginTop: "20px"}}>Skills</h3>
+                        <h3 style={{ marginTop: "20px" }}>Skills</h3>
                         <label className="muted">Skill</label>
                         <select
                             className="select"
@@ -392,7 +349,7 @@ export default function Profile() {
                     {/* Save / Reset buttons 在表单外部 */}
                     <div
                         className="cta"
-                        style={{marginTop: "20px", justifyContent: "center"}}
+                        style={{ marginTop: "20px", justifyContent: "center" }}
                     >
                         <button type="submit" form="profileForm" className="btn">
                             Save

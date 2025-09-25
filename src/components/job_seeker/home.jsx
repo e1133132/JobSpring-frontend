@@ -1,42 +1,27 @@
 import React, { useMemo, useState, useEffect } from "react";
 import "../../App.css";
-import jobSpringLogo from "../../assets/jobspringt.png";
 import axios from 'axios';
-import {NavLink, useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
-import {FaStar} from "react-icons/fa";
-import {logout} from "../../services/authService";
+import { FaStar } from "react-icons/fa";
+import { getCurrentUser } from "../../services/authService";
+import Navigation from "../navigation.jsx";
+
 
 
 export default function Home() {
-  console.log('[Home] render');
-  const [isAuthed, setIsAuthed] = useState(false);
   const [query, setQuery] = useState("");
   const [q, setq] = useState("");
   const [t, sett] = useState("all");
+  const [role, setRole] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name, setName] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [type, setType] = useState("all");
-  //const [loading, setLoading] = useState(true);
   const [JobPosition, setJobPosition] = useState([]);
-  //const token =  "";
   const navigate = useNavigate();
 
   useEffect(() => {
-    checklogin();
     fetchJobPosition();
   }, []);
-
-  const logoutt = async () => {
-    logout();
-    window.location.reload();
-  };
-
-    const checklogin = async () => {
-    if (!localStorage.getItem("jobspring_token")) {
-      setIsAuthed(false);
-    }
-    else{
-      setIsAuthed(true);}
-  };
 
   const fetchJobPosition = async () => {
     try {
@@ -45,7 +30,6 @@ export default function Home() {
     } catch (error) {
       console.error('Error fetching JobPosition:', error);
     } finally {
-      // setLoading(false);
     }
   };
 
@@ -69,7 +53,6 @@ export default function Home() {
       fetchJobPosition();
       return;
     }
-    // setLoading(true);
     try {
       const res = await axios.get("/api/job_seeker/job_list/search", {
         params: { keyword: query, page: 0, size: 50 },
@@ -92,51 +75,7 @@ export default function Home() {
   return (
     <div className="app-root">
 
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="logo">
-            <img
-              src={jobSpringLogo}
-              alt="JobSpring Logo"
-              style={{ width: "260px", height: "auto" }}
-            />
-
-          </div>
-          <div className="spacer" />
-          <div className="tabs" role="tablist" aria-label="Primary">
-            {(isAuthed
-          ? [
-              { key: "home", label: "Home", to: "/home" },
-              { key: "community", label: "Community", to: "/community" },
-              { key: "profile", label: "Profile", to: "/profile" },
-              { key: "logout", label: "logout", action: "logoutt" },
-            ]
-          : [
-              { key: "home", label: "Home", to: "/home" },
-              { key: "community", label: "Community", to: "/community" },
-              { key: "login", label: "Login", to: "/auth/login" },
-              { key: "register", label: "Register", to: "/auth/register" },
-            ]).map((t) =>  t.action === "logoutt" ?(
-              <button
-              key={t.key}
-              type="button"
-              className="tab-btn"
-              onClick={() => logoutt()}        
-            >
-              {t.label}
-            </button>
-          ) : (
-            <NavLink
-              key={t.key}
-              to={t.to}
-              className={({ isActive }) => `tab-btn ${isActive ? "active" : ""}`}
-            >
-              {t.label}
-            </NavLink>
-          ))}
-          </div>
-        </div>
-      </nav>
+      <Navigation role={role} username={name} />
 
       <header className="hero" aria-label="Search jobs">
         <div className="hero-img">
@@ -195,21 +134,21 @@ export default function Home() {
               <p className="muted" style={{ margin: 0 }}>{j.description}</p>
               <div className="cta">
                 <button
-                    className="btn"
-                    onClick={() => navigate(`/jobs/${j.id}`)}   // 跳转详情页
+                  className="btn"
+                  onClick={() => navigate(`/jobs/${j.id}`)}   // 跳转详情页
                 >
                   Apply
                 </button>
                 <button
-                    className="tab-btn ghost"
-                    onClick={() => alert(`Saved: ${j.title}`)}
-                    style={{color: "#fbbf24", fontSize: "20px"}}  // 收藏图标
+                  className="tab-btn ghost"
+                  onClick={() => alert(`Saved: ${j.title}`)}
+                  style={{ color: "#fbbf24", fontSize: "20px" }}  // 收藏图标
                 >
-                  <FaStar/>
+                  <FaStar />
                 </button>
 
               </div>
-              <div className="muted" style={{fontSize: 12}}>Posted on {j.postedAt}</div>
+              <div className="muted" style={{ fontSize: 12 }}>Posted on {j.postedAt}</div>
             </article>
           ))}
         </div>

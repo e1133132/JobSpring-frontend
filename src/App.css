@@ -42,6 +42,7 @@ html,body{
   padding: 0;
   width: 100%;
   min-height: 100%;  
+  scrollbar-gutter: stable both-edges; 
 }
 .app-root {
    min-height: 100vh; 
@@ -51,19 +52,23 @@ html,body{
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 .nav{
-  position: sticky; top:0; z-index:10;
+  position: sticky; top:0; z-index:10000;
   background: rgba(255, 255, 255, 0.9);              
   -webkit-backdrop-filter: saturate(160%) blur(8px);
   backdrop-filter: saturate(160%) blur(8px);
   border-bottom: 1px solid var(--border);
+  overflow: visible; 
 }
 .nav-inner{
   width: 100%;
   margin: 0;
+  position: relative;
   padding: 14px 24px;     
   display: flex;
   align-items: center;
   gap: 18px;
+  overflow: visible;
+  z-index:10001;
 }
 .logo{display:flex; align-items:center; gap:10px}
         .logo-mark{width:36px; height:36px; border-radius:10px;
@@ -72,7 +77,7 @@ html,body{
         .logo-mark span{font-weight:800; color:#0b1220}
         .brand{font-weight:700; letter-spacing:.3px}
         .spacer{flex:1}
-        .tabs{display:flex; gap:10px}
+        .tabs{display:flex; gap:10px;overflow: visible;}
         .tab-btn{
             padding:10px 14px; border-radius:12px;
             border:1px solid var(--border);
@@ -90,14 +95,17 @@ html,body{
         .muted{color:var(--muted); font-size:14px}
         .cta{margin-top:auto; display:flex; gap:12px}
 .hero{
+  position: relative;
   width: 100%;
   margin: 0;                
-  padding: 0 0 0px 0;       
+  padding: 0 0 0px 0;    
+  z-index: 0;    
 }
 .hero-img{
   height: 260px; position: relative;
   border-radius: 5px;
-  overflow: hidden;                     
+  overflow: visible;      
+  z-index: 0;               
   box-shadow: var(--shadow);
   background: transparent;
 }
@@ -113,8 +121,10 @@ html,body{
 
 .hero-overlay{ position:absolute; inset:0;
   background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0));
+  z-index: 0;               
+  pointer-events: none;     
 }
-
+.tabs { margin-left: auto; overflow: visible; }
 .apps-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 24px; }
 .apps-tab-btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -221,3 +231,29 @@ html,body{
   color:black;                         
 }
 footer.section{ background: var(--section); }
+
+.user { position: relative; z-index: 10002;  }
+.user-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: transparent; color: black; cursor: pointer;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 180px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  z-index: 10003;
+  overflow: visible;
+}
+.menu a {
+  display: block; padding: 10px 12px;
+  color: #e2e8f0; text-decoration: none;
+}
+.menu a:hover { background: rgba(96,165,250,.12); }
