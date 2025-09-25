@@ -1,6 +1,6 @@
 import React, {  useState } from "react";
 import Navigation from "../navigation.jsx";
-import { getCurrentUser } from "../../services/authService";
+import { getCurrentUser } from "../../services/authService.js";
 import PropTypes from "prop-types";
 
 // const JOB_TYPES = [
@@ -21,7 +21,7 @@ const initialState = {
     description: "",
 };
 
-export default function Post_job({ onSubmit }) {
+export default function PostJob({ onSubmit }) {
     const [form, setForm] = useState(initialState);
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
