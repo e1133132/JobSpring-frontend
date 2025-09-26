@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import "../../App.css";
 import PropTypes from "prop-types";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
+import axios from "axios";
 
 
 const sampleApps = [
@@ -35,6 +36,8 @@ function formatDate(iso) {
 
 export default function Apply_progress({ data = sampleApps }) {
   const [active, setActive] = useState("submitted");
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [savedCount, setSavedCount] = useState(0);
   const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
@@ -61,29 +64,67 @@ export default function Apply_progress({ data = sampleApps }) {
     [safeData, active]
   );
 
+  useEffect(() => {
+    const fetchSaved = async () => {
+      try {
+        const token = localStorage.getItem("jobspring_token");
+        const res = await axios.get("/api/favorites", {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: 0, size: 50 }
+        });
+        setSavedJobs(res.data.content || []);
+        setSavedCount(res.data.totalElements ?? res.data.content.length);
+      } catch (err) {
+        console.error("Error fetching saved jobs:", err);
+      }
+    };
+    fetchSaved();
+  }, [active]);
+
   return (
     <div className="app-root">
       <Navigation role={role} username={name} />
       <p className="subheading">Application Progress and Saved</p>
       <main className="section" style={{ marginTop: "10px" }}>
         <div className="tabs" role="tablist" aria-label="Applications Status">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              className={`tab-btn ${active === t.key ? "active" : ""}`}
-              onClick={() => setActive(t.key)}
-              role="tab"
-              aria-selected={active === t.key}
-            >
-              {t.label}
-              <span className="badge">{counts[t.key] ?? 0}</span>
-            </button>
-          ))}
+          {TABS.map((t) => {
+            let badgeCount = counts[t.key] ?? 0;
+            if (t.key === "saved") {
+              badgeCount = savedCount;
+            }
+            return (
+                <button
+                    key={t.key}
+                    className={`tab-btn ${active === t.key ? "active" : ""}`}
+                    onClick={() => setActive(t.key)}
+                    role="tab"
+                    aria-selected={active === t.key}
+                >
+                  {t.label}
+                  <span className="badge">{badgeCount}</span>
+                </button>
+            );
+          })}
         </div>
 
         {/* 列表 */}
         <div className="list">
-          {currentList.length === 0 ? (
+          {active === "saved" ? (
+              savedJobs.length === 0 ? (
+                  <div className="empty">No saved jobs yet.</div>
+              ) : (
+                  savedJobs.map((job) => (
+                      <div key={job.id} className="app-card">
+                        <div className="app-title">{job.title}</div>
+                        <div className="app-meta">
+                          <span className="company">{job.company}</span>
+                          <span className="dot">•</span>
+                          <span className="date">{formatDate(job.favoritedAt)}</span>
+                        </div>
+                      </div>
+                  ))
+              )
+          ) : (currentList.length === 0 ? (
             <div className="empty">No applications in this status.</div>
           ) : (
             currentList.map((it) => (
@@ -95,7 +136,7 @@ export default function Apply_progress({ data = sampleApps }) {
                   <span className="date">{formatDate(it.appliedAt)}</span>
                 </div>
               </div>
-            ))
+            )))
           )}
         </div>
       </main>

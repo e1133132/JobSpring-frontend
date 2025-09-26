@@ -4,10 +4,12 @@ import "../../App.css";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
+import {FaRegStar, FaStar} from "react-icons/fa";
 
 export default function JobDetail() {
     const { id } = useParams();
     const [job, setJob] = useState(null);
+    const [isFavorited, setIsFavorited] = useState(false);
     const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
     const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
@@ -22,9 +24,23 @@ export default function JobDetail() {
                 console.error("Failed to fetch job:", error);
             }
         };
-        fetchJob();
-    }, [id]);
 
+        const fetchFavoriteStatus = async () => {
+            try {
+                const token = localStorage.getItem("jobspring_token");
+                if (!token) return;
+                const res = await api.get(`/api/favorites/${id}/is-favorited`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setIsFavorited(res.data === true);
+            } catch (e) {
+                console.error("Failed to check favorite status:", e);
+            }
+        };
+
+        fetchJob();
+        fetchFavoriteStatus()
+    }, [id]);
 
     if (!job) return <div className="section">Job not found.</div>;
 
@@ -61,6 +77,31 @@ export default function JobDetail() {
         // axios.post("/api/job/apply", { jobId: job.id, userId: ... })
         //   .then(() => alert("Apply success!"))
         //   .catch(err => console.error("Apply failed:", err));
+    };
+
+    const toggleFavorite = async () => {
+        try {
+            const token = localStorage.getItem("jobspring_token");
+            if (!token) {
+                alert("Please login first!");
+                return;
+            }
+            if (isFavorited) {
+                await api.delete(`/api/favorites/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setIsFavorited(false);
+                alert(`Removed from favorites: ${job.title}`);
+            } else {
+                await api.post(`/api/favorites/${id}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setIsFavorited(true);
+                alert(`Saved: ${job.title}`);
+            }
+        } catch (e) {
+            console.error("Error toggling favorite:", e);
+        }
     };
 
     return (
@@ -100,16 +141,23 @@ export default function JobDetail() {
                         <h3 style={{ marginBottom: "10px" }}>Job Description</h3>
                         <p style={{ lineHeight: 1.6, color: "#333" }}>{job.description}</p>
 
-                        <div className="cta" style={{ marginTop: "20px" }}>
+                        <div className="cta" style={{marginTop: "20px"}}>
                             <button className="btn" onClick={handleApply}>Apply Now</button>
+                            <button
+                                className="tab-btn ghost"
+                                onClick={toggleFavorite}
+                                style={{fontSize: "20px", color: isFavorited ? "#fbbf24" : "#6b7280"}}
+                            >
+                                {isFavorited ? <FaStar/> : <FaRegStar/>}
+                            </button>
                         </div>
                     </article>
                 </div>
 
                 {/* 右边 */}
-                <div style={{ flex: "1 1 300px", minWidth: "260px" }}>
-                    <article className="card" style={{ padding: "20px" }}>
-                        <h3 style={{ marginBottom: "10px" }}>Company Info</h3>
+                <div style={{flex: "1 1 300px", minWidth: "260px"}}>
+                    <article className="card" style={{padding: "20px"}}>
+                        <h3 style={{marginBottom: "10px" }}>Company Info</h3>
                         <p style={{ fontWeight: 600 }}>Name:{job.company}</p>
                         <p className="muted">Location: {job.location}</p>
                     </article>
