@@ -1,16 +1,40 @@
 import {useState} from "react";
-import {register} from "../../services/authService";
+import {register, sendVerificationCode} from "../../services/authService";
 import {useNavigate} from "react-router-dom";
 import React from "react";
 import jobSpringLogo from "../../assets/jobspringt.png";
 
 export default function Register() {
-    const [form, setForm] = useState({fullName: "", email: "", password: ""});
+    const [form, setForm] = useState({fullName: "", email: "", password: "", code: ""});
     const [msg, setMsg] = useState(null);
+    const [cooldown, setCooldown] = useState(0);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setForm((f) => ({...f, [e.target.name]: e.target.value}));
+    };
+
+    const handleSendCode = async () => {
+        if (!form.email) {
+            setMsg("Please enter email first");
+            return;
+        }
+        try {
+            await sendVerificationCode(form.email);
+            setMsg("Verification code sent to your email");
+            setCooldown(60);
+            const timer = setInterval(() => {
+                setCooldown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } catch (error) {
+            setMsg(error?.response?.data?.message || "Failed to send code");
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -25,7 +49,7 @@ export default function Register() {
 
     return (
         <div style={{marginTop: "-20px"}}>
-            <div className="logo" >
+            <div className="logo">
                 <img
                     src={jobSpringLogo}
                     alt="JobSpring Logo"
@@ -41,7 +65,7 @@ export default function Register() {
                 borderRadius: "12px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 fontFamily: "Segoe UI, sans-serif",
-                transform: "translateY(-30px)" 
+                transform: "translateY(-30px)"
             }}>
                 <h2 style={{
                     textAlign: "center",
@@ -85,6 +109,24 @@ export default function Register() {
                         onFocus={(e) => e.target.style.borderColor = "#10b981"}
                         onBlur={(e) => e.target.style.borderColor = "#d1d5db"}
                     />
+
+                    <div style={{display: "flex", gap: "0.5rem"}}>
+                        <input name="code" placeholder="Verification Code" onChange={handleChange} style={{flex: 1}}/>
+                        <button type="button"
+                                onClick={handleSendCode}
+                                disabled={cooldown > 0}
+                                style={{
+                                    padding: "0.75rem",
+                                    background: "#f59e0b",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    cursor: cooldown > 0 ? "not-allowed" : "pointer"
+                                }}>
+                            {cooldown > 0 ? `Resend (${cooldown})` : "Send Code"}
+                        </button>
+                    </div>
+
                     <input
                         name="password"
                         type="password"
