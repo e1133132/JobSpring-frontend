@@ -28,7 +28,7 @@ export default function Login() {
                     navigate("/home");
                     break;
                 case 2: // Admin
-                    navigate("/admin");
+                    navigate("/admin/status");
                     break;
                 default:
                     navigate("/home");

@@ -30,7 +30,7 @@ function buildTopMenus(role) {
   }
   if (role === 2) { // admin
     return [
-      { key: "jobs", label: "manage job position", to: "/admin/jobs" },
+      { key: "jobs", label: "manage job position", to: "/admin/status" },
       { key: "audit", label: "Audit review", to: "/admin/audit" },
       { key: "logout", label: "Logout", action: "logoutUser" },
     ];

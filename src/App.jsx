@@ -10,6 +10,7 @@ import Apply_progress from "./components/job_seeker/apply_progress.jsx";
 import Community from "./components/job_seeker/community.jsx";
 import { getCurrentUser} from "./services/authService";
 import PostJob from "./components/hr/PostJob.jsx";
+import CheckReview from "./components/admin/checkReview.jsx";
 
 function RoleDetect(){
       const role = getCurrentUser()?.role;
@@ -29,10 +30,11 @@ function App() {
                 <Route path="/community" element={<Community/>}/>
                 <Route path="/profile" element={<Profile/>}/>
                 <Route path="/applications" element={<Apply_progress/>}/>
-                <Route path="/admin" element={<AdminDashboard/>}/>
+                <Route path="/admin/status" element={<AdminDashboard/>}/>
                 <Route path="/auth/register" element={<Register/>}/>
                 <Route path="/jobs/:id" element={<JobDetail/>} />
                 <Route path="/hr/post-job" element={<PostJob/>} />
+                <Route path="/admin/audit" element={<CheckReview/>} />
             </Routes>
         </Router>
     );

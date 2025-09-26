@@ -1,24 +1,41 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Profile from "./profile";
+import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 
-const INITIAL_JOBS = [
-  { id: 1, title: "Frontend Engineer", company: "LHT Digital", status: "active" },
-  { id: 2, title: "Backend Developer", company: "PMS API", status: "active" },
-  { id: 3, title: "Mobile Engineer", company: "EDBPM Mobile", status: "active" },
-];
 
 export default function AdminDashboard() {
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
-  const [activeTab, ] = useState("jobs");
-  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+  const [activeTab,] = useState("jobs");
+  const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+
+  useEffect(() => {
+    fetchJobStatus();
+  }, []);
+
+  const fetchJobStatus = async () => {
+    try {
+      const response = await api.get('/api/admin/status');
+      setJobs(response.data);
+      console.log('Fetched jobs:', response.data);
+    } catch (error) {
+      if (error.response) {
+        console.error('HTTP', error.response.status, error.response.data);
+      } else if (error.request) {
+        console.error('NO RESPONSE', error.message);
+      } else {
+        console.error('SETUP ERROR', error.message);
+      }
+    }
+  }
+
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
-    return jobs.filter((j) => {
+    return jobs?.filter((j) => {
       const text = `${j.title} ${j.company} ${j.status}`.toLowerCase();
       const passKw = text.includes(kw);
       const passStatus = filter === "all" ? true : j.status === filter;
@@ -72,11 +89,11 @@ export default function AdminDashboard() {
           <main className="section" aria-label="Jobs list">
             <h2>Jobs</h2>
             <div className="muted" style={{ marginBottom: 8 }}>
-              Showing {filtered.length} result{filtered.length === 1 ? "" : "s"}
+              Showing {filtered?.length} result{filtered?.length === 1 ? "" : "s"}
             </div>
             <div className="grid">
-              {filtered.length === 0 && <div className="muted">No jobs found.</div>}
-              {filtered.map((j) => (
+              {filtered?.length === 0 && <div className="muted">No jobs found.</div>}
+              {filtered?.map((j) => (
                 <article key={j.id} className="card" aria-label={`Job ${j.id}`}>
                   <div>
                     <div className="row">
@@ -104,30 +121,10 @@ export default function AdminDashboard() {
           <Profile />
         )}
         <style>{`
-      
         *{box-sizing:border-box}
-        html, body, #root { height: 100%; }
-        body{ margin:0; background: var(--bg); color: var(--text);
-              font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-        
-        .nav-inner{
-          max-width: 1100px;
-          margin: 0 auto; padding: 12px 20px;
-          display:flex; align-items:center; gap:16px;
-        }
-        .brand{
-          display:flex; align-items:center; gap:10px; font-weight:800;
-        }
-        .logo{
-          width:36px; height:36px; border-radius:10px;
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          display:grid; place-items:center; color:#064e3b; font-weight:900;
-          box-shadow: var(--shadow);
-        }
-        .brand-title{ font-size: 18px; }
 
         .spacer{ flex:1; }
-
+        .card{ width:1000px;background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; box-shadow:var(--shadow); transition:.2s; }
         .tabs{ display:flex; gap:8px; }
         .tab-btn{
           padding: 10px 14px; border-radius: 12px;
