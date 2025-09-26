@@ -17,7 +17,6 @@ export default function CheckReview() {
 
     async function fetchAllReview() {
         try {
-            const token = localStorage.getItem("jobspring_token");
             const res = await api.get("/api/admin/check_review");
             setReviews(res.data ?? []);
             console.log("Fetched reviews:", res.data);

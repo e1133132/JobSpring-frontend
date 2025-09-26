@@ -19,7 +19,6 @@ export default function AdminDashboard() {
 
   const fetchJobStatus = async () => {
     try {
-      const token = localStorage.getItem("jobspring_token");
       const response = await api.get('/api/admin/status');
       setJobs(response.data);
       console.log('Fetched jobs:', response.data);
