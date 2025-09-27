@@ -1,6 +1,6 @@
 // src/pages/auth/Login.test.jsx
 // 先做必要的 mocks（顺序要在组件 import 之前）
-
+/* eslint-disable */
 // 1) 静态资源：logo 图片
 vi.mock('../../assets/jobspringt.png', () => ({ default: 'logo.png' }));
 

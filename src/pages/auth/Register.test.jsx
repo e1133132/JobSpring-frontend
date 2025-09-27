@@ -1,4 +1,5 @@
 // src/pages/auth/Register.test.jsx
+/* eslint-disable */
 
 // 1) mock 静态资源（Vite 资源是 default 导出）
 vi.mock('../../assets/jobspringt.png', () => ({ default: 'logo.png' }));
