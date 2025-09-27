@@ -86,7 +86,7 @@ export default function Apply_progress({ data = sampleApps }) {
       <Navigation role={role} username={name} />
       <p className="subheading">Application Progress and Saved</p>
       <main className="section" style={{ marginTop: "10px" }}>
-        <div className="tabs" role="tablist" aria-label="Applications Status">
+        <div className="tabs" role="tablist" aria-label="Applications Status" style={{marginBottom: "16px"}}>
           {TABS.map((t) => {
             let badgeCount = counts[t.key] ?? 0;
             if (t.key === "saved") {
