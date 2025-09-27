@@ -39,7 +39,7 @@ export default function Home() {
       const token = localStorage.getItem("jobspring_token");
       const res = await api.get("/api/favorites", {
         headers: { Authorization: `Bearer ${token}` },
-        params: { page: 0, size: 100 }  // 拉取收藏列表
+        params: { page: 0, size: 100 } 
       });
       const ids = new Set((res.data.content || []).map(f => f.jobId));
       setFavoriteIds(ids);

@@ -5,43 +5,23 @@ import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 
 
-export default function AdminDashboard() {
+export default function checkApplication() {
   const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [activeTab,] = useState("jobs");
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
-  const [locking, setLocking] = useState(new Set());
-  const isInvalid = (s) => s === 1 || s === "invalid";
-  const statusLabel = (s) => (isInvalid(s) ? "inactive" : "active");
+
   useEffect(() => {
-    fetchJobStatus();
+    fetchApplication();
   }, []);
 
-  const fetchJobStatus = async () => {
+  const fetchApplication = async () => {
     try {
       const response = await api.get('/api/admin/status');
       setJobs(response.data);
       console.log('Fetched jobs:', response.data);
-    } catch (error) {
-      if (error.response) {
-        console.error('HTTP', error.response.status, error.response.data);
-      } else if (error.request) {
-        console.error('NO RESPONSE', error.message);
-      } else {
-        console.error('SETUP ERROR', error.message);
-      }
-    }
-  }
-
-  const invalidJob = async (companyId, jobId) => {
-    if (isInvalid(jobs.find(x => x.jobId === jobId)?.status)) return;
-    if (locking.has(jobId)) return;
-    setLocking(prev => new Set(prev).add(jobId));
-    try {
-      await api.post(`/api/admin/companies/${companyId}/jobs/${jobId}/invalid`);
-      setJobs(prev => prev.map(j => j.jobId === jobId ? { ...jobId, status: 1 } : j));
     } catch (error) {
       if (error.response) {
         console.error('HTTP', error.response.status, error.response.data);
@@ -63,6 +43,20 @@ export default function AdminDashboard() {
     });
   }, [jobs, q, filter]);
 
+
+  const markInvalid = (id) => {
+    setJobs((prev) =>
+      prev.map((j) =>
+        j.id === id
+          ? { ...j, status: j.status === "invalid" ? "active" : "invalid" }
+          : j
+      )
+    );
+  };
+
+  const removeJob = (id) => {
+    setJobs((prev) => prev.filter((j) => j.id !== id));
+  };
 
   return (
     <div className="app-root">
@@ -108,19 +102,15 @@ export default function AdminDashboard() {
                     </div>
                     <div className="row" style={{ marginTop: 6 }}>
                       <span className={`pill ${j.status === "invalid" ? "invalid" : ""}`}>
-                         status: {statusLabel(j.status)}
+                        status: {j.status}
                       </span>
                       <span className="pill">id: {j.id}</span>
                     </div>
                   </div>
                   <div className="actions">
-                    <button
-                      className="btn warning"
-                      disabled={isInvalid(j.status) || locking.has(j.id)}
-                      onClick={() => invalidJob(j.companyId, j.id)}
-                      title={isInvalid(j.status) ? "Already inactive" : "Mark as invalid"}
-                    >
-                      invalid
+                    <button className="btn danger" onClick={() => removeJob(j.id)}>delete</button>
+                    <button className="btn warning" onClick={() => markInvalid(j.id)}>
+                      {j.status === "invalid" ? "restore" : "invalid"}
                     </button>
                   </div>
                 </article>
@@ -179,11 +169,7 @@ export default function AdminDashboard() {
           background: linear-gradient(135deg, var(--accent), var(--accent-2));
           color:#042f2e; font-weight:800; cursor: pointer;
         }
-        .btn:disabled {
-          opacity: .55;
-          cursor: not-allowed;
-          filter: grayscale(100%);
-        }
+        .btn:disabled{ opacity:.6; cursor: not-allowed; }
 
         .ghost{
           background: #fff; border:1px solid var(--border); color:#0f172a;
