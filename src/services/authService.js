@@ -1,7 +1,7 @@
 import api from './api';
 
-export async function register({email, password, fullName}) {
-    const {data} = await api.post('/api/auth/register', {email, password, fullName});
+export async function register({email, password, fullName, code}) {
+    const {data} = await api.post('/api/auth/register', {email, password, fullName, code});
     return data; // { token, user }
 }
 
@@ -19,3 +19,6 @@ export function getCurrentUser() {
     const user = localStorage.getItem('jobspring_user');
     return user ? JSON.parse(user) : null;
 }
+
+export const sendVerificationCode = (email) =>
+    api.post("/api/auth/send-code", {email});

@@ -43,7 +43,7 @@ export default function Login() {
 
     return (
         <div style={{marginTop: "-20px"}}>
-            <div className="logo" >
+            <div className="logo">
                 <img
                     src={jobSpringLogo}
                     alt="JobSpring Logo"
@@ -58,7 +58,7 @@ export default function Login() {
                 borderRadius: "12px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 fontFamily: "Segoe UI, sans-serif",
-                transform: "translateY(-25px)" 
+                transform: "translateY(-25px)"
             }}>
 
                 <h2 style={{
