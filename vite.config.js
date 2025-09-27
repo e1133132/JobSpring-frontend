@@ -6,7 +6,7 @@ import eslint from 'vite-plugin-eslint';
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react(),
-    process.env.CI_SKIP_LINT === '1' ? null : eslint({
+    process.env.CI_SKIP_LINT === '1' ? false : eslint({
         exclude: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**']
     })
     ],
