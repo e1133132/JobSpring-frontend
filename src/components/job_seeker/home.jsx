@@ -3,7 +3,7 @@ import "../../App.css";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
-import { FaStar } from "react-icons/fa";
+import {FaRegStar, FaStar} from "react-icons/fa";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 
@@ -18,9 +18,11 @@ export default function Home() {
   const [type, setType] = useState("all");
   const [JobPosition, setJobPosition] = useState([]);
   const navigate = useNavigate();
+  const [favoriteIds, setFavoriteIds] = useState(new Set());
 
   useEffect(() => {
     fetchJobPosition();
+    fetchFavorites();
   }, []);
 
   const fetchJobPosition = async () => {
@@ -30,6 +32,20 @@ export default function Home() {
     } catch (error) {
       console.error('Error fetching JobPosition:', error);
     } 
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem("jobspring_token");
+      const res = await api.get("/api/favorites", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { page: 0, size: 100 }  // 拉取收藏列表
+      });
+      const ids = new Set((res.data.content || []).map(f => f.jobId));
+      setFavoriteIds(ids);
+    } catch (e) {
+      console.error("Error fetching favorites:", e);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -68,6 +84,31 @@ export default function Home() {
       console.error("Error searching jobs:", e);
     } finally {
       //  setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (jobId, jobTitle) => {
+    try {
+      const token = localStorage.getItem("jobspring_token");
+      if (favoriteIds.has(jobId)) {
+        await api.delete(`/api/favorites/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFavoriteIds(prev => {
+          const copy = new Set(prev);
+          copy.delete(jobId);
+          return copy;
+        });
+        alert(`Saved job: ${jobTitle} has been canceled!`)
+      } else {
+        await api.post(`/api/favorites/${jobId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFavoriteIds(prev => new Set(prev).add(jobId));
+        alert(`Saved: ${jobTitle} successfully!`)
+      }
+    } catch (e) {
+      console.error("Error toggling favorite:", e);
     }
   };
 
@@ -140,10 +181,10 @@ export default function Home() {
                 </button>
                 <button
                   className="tab-btn ghost"
-                  onClick={() => alert(`Saved: ${j.title}`)}
-                  style={{ color: "#fbbf24", fontSize: "20px" }}  // 收藏图标
+                  onClick={() => toggleFavorite(j.id, j.title)}
+                  style={{ fontSize: "20px", color: favoriteIds.has(j.id) ? "#fbbf24" : "#6b7280" }}
                 >
-                  <FaStar />
+                  {favoriteIds.has(j.id) ? <FaStar /> : <FaRegStar />}
                 </button>
 
               </div>
