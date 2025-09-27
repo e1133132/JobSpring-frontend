@@ -64,20 +64,6 @@ export default function AdminDashboard() {
   }, [jobs, q, filter]);
 
 
-  const markInvalid = (id) => {
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === id
-          ? { ...j, status: j.status === "invalid" ? "active" : "invalid" }
-          : j
-      )
-    );
-  };
-
-  const removeJob = (id) => {
-    setJobs((prev) => prev.filter((j) => j.id !== id));
-  };
-
   return (
     <div className="app-root">
       <Navigation role={role} username={name} />

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 // ✅ 先 mock 掉 CSS（防止 jsdom 解析 var() 边框炸掉）
 vi.mock('../../App.css', () => ({}), { virtual: true });
 
