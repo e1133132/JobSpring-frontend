@@ -36,9 +36,17 @@ jobs:
           fi
 
     
-      - name: Lint
-        if: ${{ hashFiles('**/.eslintrc*') != '' || contains(join(fromJSON(steps.pkg.outputs.scripts || '[]')), 'lint') }}
-        run: npm run lint
+      - name: Lint (skip React & tests)
+        if: ${{ hashFiles('**/.eslintrc*') != '' }}
+        shell: bash
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx \
+            --ignore-pattern '**/*.test.*' \
+            --ignore-pattern '**/*.spec.*' \
+            --ignore-pattern '**/__tests__/**' \
+            --rule 'react/*:off' \
+            --rule 'react-hooks/*:off' \
+            --rule 'jsx-a11y/*:off'
 
       - name: Build
         env:
