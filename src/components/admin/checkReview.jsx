@@ -10,6 +10,9 @@ export default function CheckReview() {
     const [filter, setFilter] = useState("all"); // all | approved | rejected | pending
     const [role] = useState(getCurrentUser() ? getCurrentUser().role : "guest");
     const [name] = useState(getCurrentUser() ? getCurrentUser().fullName : "guest");
+    const [pending, setPending] = React.useState({});
+    const [decided, setDecided] = React.useState({});
+    const[note,setNote]=useState("");
 
     useEffect(() => {
         fetchAllReview();
@@ -31,18 +34,14 @@ export default function CheckReview() {
         }
     }
 
-
-    const normStatus = (s) => (typeof s === "string" ? s.toUpperCase() : s);
     const statusText = (s) => {
-        const v = normStatus(s);
-        if (v === "APPROVED") return "approved";
-        if (v === "REJECTED") return "rejected";
-        return "pending";
+        if (s === 0) return "pending";
+        if (s === 1) return "passed";
+        return "rejected";
     };
     const statusClass = (s) => {
-        const v = statusText(s);
-        if (v === "approved") return "approved";
-        if (v === "rejected") return "invalid";
+        if (s === 1) return "approved";
+        if (s === 2) return "invalid";
         return "pending";
     };
 
@@ -57,7 +56,7 @@ export default function CheckReview() {
                 String(r.applicationId ?? "").includes(qq) ||
                 String(r.rating ?? "").includes(qq);
 
-            const st = statusText(r.status); // approved | rejected | pending
+            const st = statusText(r.status);
             const matchesFilter = filter === "all" ? true : st === filter;
 
             return matchesText && matchesFilter;
@@ -65,33 +64,59 @@ export default function CheckReview() {
     }, [reviews, q, filter]);
 
     async function passReview(review) {
+        const id = review.id;
+        setPending((s) => ({ ...s, [id]: true }));
+        setDecided((s) => ({ ...s, [id]: "approved" }));
         try {
-            await axios.post("/api/admin/review/pass", { id: review.id });
-            setReviews((prev) =>
-                prev.map((r) => (r.id === review.id ? { ...r, status: "APPROVED" } : r))
-            );
+            await api.post(`/api/admin/review/pass/${id}`, {
+                note: note ?? ""   
+            }, {
+                headers: { "Content-Type": "application/json" }
+            });
+            setReviews((prev) => prev.map((r) =>
+                (r.id === id ? { ...r, status: 1 } : r)));
         } catch (err) {
+            setDecided((s) => {
+                const { [id]: _, ...rest } = s;
+                return rest;
+            });
             console.error("pass review failed:", err.response?.data || err.message);
+        } finally {
+            setPending((s) => {
+                const { [id]: _, ...rest } = s;
+                return rest;
+            });
         }
     }
 
     async function rejectReview(review) {
-        const reason = window.prompt("Please enter a reason for rejection:")?.trim();
-        if (!reason) return;
-
+        const id = review.id;
+        setPending((s) => ({ ...s, [id]: true }));
+        setDecided((s) => ({ ...s, [id]: "rejected" }));
         try {
-            await axios.post("/api/admin/review/reject", { id: review.id, reason });
-            setReviews((prev) =>
-                prev.map((r) =>
-                    r.id === review.id ? { ...r, status: "REJECTED", reviewNote: reason } : r
-                )
-            );
+            await api.post(`/api/admin/review/reject/${id}`, {
+                note: note ?? ""   
+            }, {
+                headers: { "Content-Type": "application/json" }
+            });
+            setReviews((prev) => prev.map((r) =>
+                (r.id === id ? { ...r, status: 2 } : r)));
         } catch (err) {
+            setDecided((s) => {
+                const { [id]: _, ...rest } = s;
+                return rest;
+            });
             console.error("reject review failed:", err.response?.data || err.message);
+        } finally {
+            setPending((s) => {
+                const { [id]: _, ...rest } = s;
+                return rest;
+            });
         }
     }
 
     return (
+
         <div className="app-root">
             <Navigation role={role} username={name} />
 
@@ -129,56 +154,75 @@ export default function CheckReview() {
                     <div className="grid">
                         {filtered?.length === 0 && <div className="muted">No reviews found.</div>}
 
-                        {filtered?.map((r) => (
-                            <article key={r.id} className="card" aria-label={`Review ${r.id}`}>
-                                <div>
-                                    <div className="row">
-                                        <span className="name">{r.title ?? "(No title)"}</span>
-                                        <span className="muted">#{r.id}</span>
+                        {filtered?.map((r) => {
+                            const st = statusText(r.status);
+                            const isDisabled = !!(pending[r.id] || decided[r.id]);
+                            const busyPass = pending[r.id] && decided[r.id] === "approved";
+                            const busyReject = pending[r.id] && decided[r.id] === "rejected";
+
+                            return (
+                                <article key={r.id} className="card" aria-label={`Review ${r.id}`}>
+                                    <div>
+                                        <div className="row">
+                                            <span className="name">{r.title ?? "(No title)"}</span>
+                                            <span className="muted">#{r.id}</span>
+                                        </div>
+
+                                        <div className="row" style={{ marginTop: 6 }}>
+                                            <span className={`pill ${statusClass(r.status)}`}>
+                                                status: {st}
+                                            </span>
+                                            {typeof r.rating !== "undefined" && (
+                                                <span className="pill">rating: {r.rating}</span>
+                                            )}
+                                            {typeof r.applicationId !== "undefined" && (
+                                                <span className="pill">applicationId: {r.applicationId}</span>
+                                            )}
+                                            {r.submittedAt && (
+                                                <span className="pill">
+                                                    submitted: {new Date(r.submittedAt).toLocaleString()}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {r.content && (
+                                            <div className="muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
+                                                {r.content}
+                                            </div>
+                                        )}
+
+                                        {r.reviewNote && (
+                                            <div className="muted" style={{ marginTop: 6 }}>
+                                                <strong>note:</strong> {r.reviewNote}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="row" style={{ marginTop: 6 }}>
-                                        <span className={`pill ${statusClass(r.status)}`}>
-                                            status: {statusText(r.status)}
-                                        </span>
-                                        {typeof r.rating !== "undefined" && (
-                                            <span className="pill">rating: {r.rating}</span>
+                                    <div className="actions">
+                                        {st !== "passed" && st !== "rejected" &&(
+                                            <button
+                                                className="btn"
+                                                onClick={() => passReview(r)}
+                                                disabled={isDisabled}
+                                                aria-busy={busyPass}
+                                            >
+                                                {busyPass ? "passing…" : "pass"}
+                                            </button>
                                         )}
-                                        {typeof r.applicationId !== "undefined" && (
-                                            <span className="pill">applicationId: {r.applicationId}</span>
-                                        )}
-                                        {r.submittedAt && (
-                                            <span className="pill">submitted: {new Date(r.submittedAt).toLocaleString()}</span>
+                                        {st !== "passed" && st !== "rejected" && (
+                                            <button
+                                                className="btn danger"
+                                                onClick={() => rejectReview(r)}
+                                                disabled={isDisabled}
+                                                aria-busy={busyReject}
+                                            >
+                                                {busyReject ? "rejecting…" : "reject"}
+                                            </button>
                                         )}
                                     </div>
-
-                                    {r.content && (
-                                        <div className="muted" style={{ marginTop: 8, lineHeight: 1.45 }}>
-                                            {r.content}
-                                        </div>
-                                    )}
-
-                                    {r.reviewNote && (
-                                        <div className="muted" style={{ marginTop: 6 }}>
-                                            <strong>note:</strong> {r.reviewNote}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="actions">
-                                    {statusText(r.status) !== "approved" && (
-                                        <button className="btn" onClick={() => passReview(r)}>
-                                            pass
-                                        </button>
-                                    )}
-                                    {statusText(r.status) !== "rejected" && (
-                                        <button className="btn danger" onClick={() => rejectReview(r)}>
-                                            reject
-                                        </button>
-                                    )}
-                                </div>
-                            </article>
-                        ))}
+                                </article>
+                            );
+                        })}
                     </div>
                 </main>
 
@@ -191,7 +235,12 @@ export default function CheckReview() {
           .input:focus{ outline:none; border-color: rgba(34,197,94,.55); box-shadow: var(--ring); }
           .select{ flex: 0 0 180px; height:46px; padding:0 12px; border-radius:12px; border:1px solid var(--border); background:#fff; color:var(--text); }
           .btn{ height:46px; padding:0 16px; border-radius:12px; border:0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#042f2e; font-weight:800; cursor:pointer; }
-          .btn:disabled{ opacity:.6; cursor:not-allowed; }
+          .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+            }
+
           .ghost{ background:#fff; border:1px solid var(--border); color:#0f172a; }
           .ghost:hover{ border-color: rgba(34,197,94,.45); }
           .section{ width:100%; background:var(--section); margin:0; padding:24px; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
