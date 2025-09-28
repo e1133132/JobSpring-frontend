@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
@@ -12,7 +11,7 @@ export default function CheckReview() {
     const [name] = useState(getCurrentUser() ? getCurrentUser().fullName : "guest");
     const [pending, setPending] = React.useState({});
     const [decided, setDecided] = React.useState({});
-    const[note,setNote]=useState("");
+    const [note,] = useState("");
 
     useEffect(() => {
         fetchAllReview();
@@ -69,7 +68,7 @@ export default function CheckReview() {
         setDecided((s) => ({ ...s, [id]: "approved" }));
         try {
             await api.post(`/api/admin/review/pass/${id}`, {
-                note: note ?? ""   
+                note: note ?? ""
             }, {
                 headers: { "Content-Type": "application/json" }
             });
@@ -77,14 +76,16 @@ export default function CheckReview() {
                 (r.id === id ? { ...r, status: 1 } : r)));
         } catch (err) {
             setDecided((s) => {
-                const { [id]: _, ...rest } = s;
-                return rest;
+                const next = { ...s };
+                delete next[id];
+                return next;
             });
             console.error("pass review failed:", err.response?.data || err.message);
         } finally {
             setPending((s) => {
-                const { [id]: _, ...rest } = s;
-                return rest;
+                const next = { ...s };
+                delete next[id];
+                return next;
             });
         }
     }
@@ -95,7 +96,7 @@ export default function CheckReview() {
         setDecided((s) => ({ ...s, [id]: "rejected" }));
         try {
             await api.post(`/api/admin/review/reject/${id}`, {
-                note: note ?? ""   
+                note: note ?? ""
             }, {
                 headers: { "Content-Type": "application/json" }
             });
@@ -103,14 +104,16 @@ export default function CheckReview() {
                 (r.id === id ? { ...r, status: 2 } : r)));
         } catch (err) {
             setDecided((s) => {
-                const { [id]: _, ...rest } = s;
-                return rest;
+                const next = { ...s };  
+                delete next[id];
+                return next;
             });
             console.error("reject review failed:", err.response?.data || err.message);
         } finally {
             setPending((s) => {
-                const { [id]: _, ...rest } = s;
-                return rest;
+                const next = { ...s };  
+                delete next[id];
+                return next;
             });
         }
     }
@@ -199,7 +202,7 @@ export default function CheckReview() {
                                     </div>
 
                                     <div className="actions">
-                                        {st !== "passed" && st !== "rejected" &&(
+                                        {st !== "passed" && st !== "rejected" && (
                                             <button
                                                 className="btn"
                                                 onClick={() => passReview(r)}
