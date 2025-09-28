@@ -55,6 +55,7 @@ function buildDropdown(role) {
   if (role === 1) {
     return [
       { key: "profile", label: "Profile", to: "/profile" },
+      { key: "application", label: "Applications", to: "/hr/applications" },
       { key: "post-job", label: "Post job position", to: "/hr/post-job" },
     ];
   }

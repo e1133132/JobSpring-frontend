@@ -11,11 +11,12 @@ import Community from "./components/job_seeker/community.jsx";
 import {getCurrentUser} from "./services/authService";
 import PostJob from "./components/hr/PostJob.jsx";
 import CheckReview from "./components/admin/checkReview.jsx";
+import CheckApplication from "./components/hr/checkApplication.jsx";
 
 function RoleDetect() {
     const role = getCurrentUser()?.role;
     console.log(role);
-    return role === 2 ? "/admin" : "/home";
+    return role === 2 ? "/admin/status" : "/home";
 }
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/jobs/:id" element={<JobDetail/>}/>
                 <Route path="/hr/post-job" element={<PostJob/>}/>
                 <Route path="/admin/audit" element={<CheckReview/>}/>
+                <Route path="/hr/applications" element={<CheckApplication/>}/>
             </Routes>
         </Router>
     );
