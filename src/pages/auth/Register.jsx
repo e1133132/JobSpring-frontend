@@ -1,27 +1,70 @@
-import {useState} from "react";
+import {useMemo, useRef, useState} from "react";
 import {register, sendVerificationCode} from "../../services/authService";
 import {useNavigate} from "react-router-dom";
 import React from "react";
 import jobSpringLogo from "../../assets/jobspringt.png";
+import {validateField} from "../../utils/validators.js";
 
 export default function Register() {
     const [form, setForm] = useState({fullName: "", email: "", password: "", code: ""});
     const [msg, setMsg] = useState(null);
     const [cooldown, setCooldown] = useState(0);
     const navigate = useNavigate();
+    const [errors, setErrors] = useState({});          // { fieldName: errorMessage }
+    const [touched, setTouched] = useState({});        // { fieldName: true }
+    const formRef = useRef(null);
+
+    // form valid = all fields have value and no error messages
+    const isFormValid = useMemo(() => {
+        const hasValues =
+            form.fullName.trim() && form.email.trim() && form.password && form.code;
+        const hasNoErrors =
+            !errors.fullName && !errors.email && !errors.password && !errors.code;
+        return Boolean(hasValues && hasNoErrors);
+    }, [form, errors]);
+
+    const setField = (name, value) => {
+        setForm((f) => ({...f, [name]: value}));
+        if (touched[name]) {
+            const msg = validateField(name, value);
+            setErrors((prev) => ({...prev, [name]: msg || undefined}));
+        }
+    };
 
     const handleChange = (e) => {
-        setForm((f) => ({...f, [e.target.name]: e.target.value}));
+        setField(e.target.name, e.target.value);
+    };
+
+    const handleBlur = (e) => {
+        const {name, value} = e.target;
+        setTouched((t) => ({...t, [name]: true}));
+        const msg = validateField(name, value);
+        setErrors((prev) => ({...prev, [name]: msg || undefined}));
+    };
+
+    const validateAll = () => {
+        const fields = ["fullName", "email", "password", "code"];
+        const nextErrors = {};
+        fields.forEach((n) => {
+            const v = form[n] ?? "";
+            const msg = validateField(n, v);
+            if (msg) nextErrors[n] = msg;
+        });
+        setErrors(nextErrors);
+        setTouched({fullName: true, email: true, password: true, code: true});
+        return Object.keys(nextErrors).length === 0;
     };
 
     const handleSendCode = async () => {
-        if (!form.email) {
-            setMsg("Please enter email first");
-            return;
-        }
+        setMsg(null);
+        // validate email before sending
+        const emailErr = validateField("email", form.email);
+        setTouched((t) => ({...t, email: true}));
+        setErrors((prev) => ({...prev, email: emailErr || undefined}));
+        if (emailErr) return;
+
         try {
             await sendVerificationCode(form.email);
-            setMsg("Verification code sent to your email");
             setCooldown(60);
             const timer = setInterval(() => {
                 setCooldown((prev) => {
@@ -39,6 +82,8 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validateAll()) return;
+
         try {
             await register(form);
             navigate("/auth/login");
@@ -46,6 +91,21 @@ export default function Register() {
             setMsg(error?.response?.data?.message || "Register failed");
         }
     };
+
+    const borderStyle = (field) => ({
+        padding: "0.75rem 1rem",
+        border: `1px solid ${touched[field] && errors[field] ? "#b91c1c" : "#d1d5db"}`,
+        borderRadius: "8px",
+        outline: "none",
+        transition: "border-color 0.2s",
+        width: "100%",
+    });
+
+    const errorText = (field) =>
+        touched[field] && errors[field] ? (
+            <div style={{color: "#b91c1c", fontSize: 12, marginTop: 4}}>{errors[field]}</div>
+        ) : null;
+
 
     return (
         <div style={{marginTop: "-20px"}}>
@@ -75,91 +135,114 @@ export default function Register() {
                     Register
                 </h2>
 
-                <form onSubmit={handleSubmit} style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem"
-                }}>
-                    <input
-                        name="fullName"
-                        placeholder="Full Name"
-                        onChange={handleChange}
-                        style={{
-                            padding: "0.75rem 1rem",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "8px",
-                            outline: "none",
-                            transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = "#10b981"}
-                        onBlur={(e) => e.target.style.borderColor = "#d1d5db"}
-                    />
-                    <input
-                        name="email"
-                        type="email"
-                        placeholder="Email"
-                        onChange={handleChange}
-                        style={{
-                            padding: "0.75rem 1rem",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "8px",
-                            outline: "none",
-                            transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = "#10b981"}
-                        onBlur={(e) => e.target.style.borderColor = "#d1d5db"}
-                    />
+                <form ref={formRef} onSubmit={handleSubmit} noValidate
+                      style={{display: "flex", flexDirection: "column", gap: "0.75rem"}}>
+                    <div>
+                        <input
+                            name="fullName"
+                            placeholder="Full Name"
+                            value={form.fullName}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                            style={borderStyle("fullName")}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = "#10b981")}
+                            onBlurCapture={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
+                        />
+                        {errorText("fullName")}
+                    </div>
 
-                    <div style={{display: "flex", gap: "0.5rem"}}>
-                        <input name="code" placeholder="Verification Code" onChange={handleChange} style={{flex: 1}}/>
-                        <button type="button"
+                    <div>
+                        <input
+                            name="email"
+                            type="email"
+                            placeholder="Email"
+                            value={form.email}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                            style={borderStyle("email")}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = "#10b981")}
+                            onBlurCapture={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
+                        />
+                        {errorText("email")}
+                    </div>
+
+                    <div>
+                        <div style={{display: "flex", gap: "0.5rem"}}>
+                            <input
+                                name="code"
+                                placeholder="Verification Code"
+                                value={form.code}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                required
+                                inputMode="numeric"
+                                style={{...borderStyle("code"), flex: 1}}
+                                onFocus={(e) => (e.currentTarget.style.borderColor = "#10b981")}
+                                onBlurCapture={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
+                            />
+                            <button
+                                type="button"
                                 onClick={handleSendCode}
                                 disabled={cooldown > 0}
                                 style={{
                                     padding: "0.75rem",
-                                    background: "#f59e0b",
+                                    background: cooldown > 0 ? "#fbbf24" : "#f59e0b",
                                     color: "#fff",
                                     border: "none",
                                     borderRadius: "8px",
-                                    cursor: cooldown > 0 ? "not-allowed" : "pointer"
-                                }}>
-                            {cooldown > 0 ? `Resend (${cooldown})` : "Send Code"}
-                        </button>
+                                    cursor: cooldown > 0 ? "not-allowed" : "pointer",
+                                    minWidth: 130,
+                                }}
+                            >
+                                {cooldown > 0 ? `Resend (${cooldown})` : "Send Code"}
+                            </button>
+                        </div>
+                        {errorText("code")}
                     </div>
 
-                    <input
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        onChange={handleChange}
-                        style={{
-                            padding: "0.75rem 1rem",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "8px",
-                            outline: "none",
-                            transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = "#10b981"}
-                        onBlur={(e) => e.target.style.borderColor = "#d1d5db"}
-                    />
+                    <div>
+                        <input
+                            name="password"
+                            type="password"
+                            placeholder="Password"
+                            value={form.password}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                            minLength={6}
+                            style={borderStyle("password")}
+                            onFocus={(e) => (e.currentTarget.style.borderColor = "#10b981")}
+                            onBlurCapture={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
+                        />
+                        {errorText("password")}
+                    </div>
+
                     <button
                         type="submit"
+                        disabled={!isFormValid}
                         style={{
                             padding: "0.75rem",
-                            background: "#10b981",
+                            background: isFormValid ? "#10b981" : "#9ca3af",
                             color: "#fff",
                             border: "none",
                             borderRadius: "8px",
-                            cursor: "pointer",
-                            fontWeight: "600",
-                            transition: "background 0.2s"
+                            cursor: isFormValid ? "pointer" : "not-allowed",
+                            fontWeight: 600,
+                            transition: "background 0.2s",
                         }}
-                        onMouseEnter={(e) => e.target.style.background = "#059669"}
-                        onMouseLeave={(e) => e.target.style.background = "#10b981"}
+                        onMouseEnter={(e) => {
+                            if (isFormValid) e.currentTarget.style.background = "#059669";
+                        }}
+                        onMouseLeave={(e) => {
+                            if (isFormValid) e.currentTarget.style.background = "#10b981";
+                        }}
                     >
                         Register
                     </button>
                 </form>
+
 
                 <button
                     onClick={() => navigate("/auth/login")}
@@ -172,14 +255,15 @@ export default function Register() {
                         border: "none",
                         borderRadius: "8px",
                         cursor: "pointer",
-                        fontWeight: "600",
-                        transition: "background 0.2s"
+                        fontWeight: 600,
+                        transition: "background 0.2s",
                     }}
-                    onMouseEnter={(e) => e.target.style.background = "#2563eb"}
-                    onMouseLeave={(e) => e.target.style.background = "#3b82f6"}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#2563eb")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#3b82f6")}
                 >
                     Back to Login
                 </button>
+
 
                 {msg && <p style={{
                     marginTop: "1rem",
