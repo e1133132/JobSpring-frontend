@@ -13,6 +13,10 @@ export default function AdminDashboard() {
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [locking, setLocking] = useState(new Set());
+  const [type, ] = useState("all");
+  const [query, ] = useState("");
+  const [, sett] = useState("all");
+
   const isInvalid = (s) => s === 1 || s === "invalid";
   const statusLabel = (s) => (isInvalid(s) ? "inactive" : "active");
   useEffect(() => {
@@ -34,6 +38,30 @@ export default function AdminDashboard() {
       }
     }
   }
+
+  const handleSearch = async () => {
+    setQ(query.trim());
+    sett(type);
+    if (!query.trim()) {
+      fetchJobStatus();
+      return;
+    }
+    try {
+      const res = await api.post("/api/job_seeker/job_list/search", {
+        params: { keyword: query, page: 0, size: 50 },
+      });
+      let list = res.data.content ?? [];
+      if (type && type !== "all") {
+        list = list.filter((j) => {
+          const t = (j.employmentType ?? "").toLowerCase();
+          return t === type.toLowerCase();
+        });
+      }
+      setJobs(list);
+    } catch (e) {
+      console.error("Error searching jobs:", e);
+    } 
+  };
 
   const invalidJob = async (companyId, jobId) => {
     if (isInvalid(jobs.find(x => x.jobId === jobId)?.status)) return;
@@ -86,8 +114,8 @@ export default function AdminDashboard() {
             <option value="active">Active</option>
             <option value="invalid">Invalid</option>
           </select>
-          <button className="btn ghost" onClick={() => { setQ(""); setFilter("all"); }}>
-            Reset
+          <button className="btn" onClick={() => { handleSearch(); }}>
+            Search
           </button>
         </section>
 
