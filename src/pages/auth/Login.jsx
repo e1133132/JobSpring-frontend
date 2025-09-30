@@ -89,6 +89,7 @@ export default function Login() {
         outline: "none",
         transition: "border-color 0.2s",
         width: "100%",
+        boxSizing: "border-box",
     });
 
     const errorText = (field) =>
@@ -128,7 +129,7 @@ export default function Login() {
                     ref={formRef}
                     onSubmit={handleSubmit}
                     noValidate
-                    style={{display: "flex", flexDirection: "column", gap: "0.75rem"}}
+                    style={{display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%"}}
                 >
                     <div>
                         <input
@@ -166,6 +167,7 @@ export default function Login() {
                         type="submit"
                         disabled={!isFormValid}
                         style={{
+                            width: "100%",
                             padding: "0.75rem",
                             background: isFormValid ? "#10b981" : "#9ca3af",
                             color: "#fff",
