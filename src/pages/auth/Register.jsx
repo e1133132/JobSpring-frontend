@@ -99,6 +99,7 @@ export default function Register() {
         outline: "none",
         transition: "border-color 0.2s",
         width: "100%",
+        boxSizing: "border-box",
     });
 
     const errorText = (field) =>
