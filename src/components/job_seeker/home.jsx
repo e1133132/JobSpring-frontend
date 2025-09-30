@@ -37,7 +37,7 @@ export default function Home() {
   const fetchFavorites = async () => {
     try {
       const token = localStorage.getItem("jobspring_token");
-      const res = await api.get("/api/favorites", {
+      const res = await api.get("/api/job_favorites", {
         headers: { Authorization: `Bearer ${token}` },
         params: { page: 0, size: 100 } 
       });
@@ -91,7 +91,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem("jobspring_token");
       if (favoriteIds.has(jobId)) {
-        await api.delete(`/api/favorites/${jobId}`, {
+        await api.delete(`/api/job_favorites/${jobId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFavoriteIds(prev => {
@@ -101,7 +101,7 @@ export default function Home() {
         });
         alert(`Saved job: ${jobTitle} has been canceled!`)
       } else {
-        await api.post(`/api/favorites/${jobId}`, {}, {
+        await api.post(`/api/job_favorites/${jobId}`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFavoriteIds(prev => new Set(prev).add(jobId));
@@ -175,7 +175,7 @@ export default function Home() {
               <div className="cta">
                 <button
                   className="btn"
-                  onClick={() => navigate(`/jobs/${j.id}`)}   // 跳转详情页
+                  onClick={() => navigate(`/jobs/${j.id}`)}   
                 >
                   Apply
                 </button>

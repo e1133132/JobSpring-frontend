@@ -1,23 +1,16 @@
-import React, {  useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navigation from "../navigation.jsx";
 import { getCurrentUser } from "../../services/authService.js";
 import PropTypes from "prop-types";
-
-// const JOB_TYPES = [
-//     { value: "full_time", label: "full time" },
-//     { value: "part_time", label: "part time" },
-//     { value: "contract", label: "contract" },
-//     { value: "intern", label: "internship" },
-//     { value: "remote", label: "remote" },
-// ];
+import { getCompanyId } from "../../services/hrService.js";
+import api from "../../services/api.js";
 
 const initialState = {
     title: "",
-    company: "",
-    jobType: "",
+    employmentType: "",
     salaryMin: "",
     salaryMax: "",
-    address: "",
+    location: "",
     description: "",
 };
 
@@ -28,15 +21,23 @@ export default function PostJob({ onSubmit }) {
     const [serverMsg, setServerMsg] = useState("");
     const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
     const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
-    // const salaryRangeHelper = useMemo(() => {
-    //     const min = Number(form.salaryMin);
-    //     const max = Number(form.salaryMax);
-    //     if (!form.salaryMin || !form.salaryMax) return "";
-    //     if (!Number.isFinite(min) || !Number.isFinite(max)) return "Please enter numbers";
-    //     if (min < 0 || max < 0) return "Salary must be non-negative";
-    //     if (min > max) return "Min salary should not exceed max salary";
-    //     return `${min} - ${max}`;
-    // }, [form.salaryMin, form.salaryMax]);
+    const EMPLOYMENT_TYPE = {
+        FULL_TIME: 1,
+        PART_TIME: 2,
+        REMOTE: 3,
+    }
+    const [companyId, setCompanyId] = useState("");
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const id = await getCompanyId();
+                setCompanyId(id);
+            } catch (e) {
+                console.error("getCompanyId failed:", e);
+            }
+        })();
+    }, []);
 
     function updateField(key, value) {
         setForm((prev) => ({ ...prev, [key]: value }));
@@ -46,8 +47,10 @@ export default function PostJob({ onSubmit }) {
     function validate() {
         const next = {};
         if (!form.title.trim()) next.title = "Please enter the job name";
-        if (!form.company.trim()) next.company = "Please enter the company name";
-        if (!form.jobType) next.jobType = "Please choose a job type";
+
+        if (![1, 2, 3].includes(Number(form.employmentType))) {
+            next.employmentType = "Please choose a job type";
+        }
 
         const min = Number(form.salaryMin);
         const max = Number(form.salaryMax);
@@ -65,11 +68,12 @@ export default function PostJob({ onSubmit }) {
         }
 
         if (!form.description.trim()) next.description = "Please fill in the job description";
-        if (!form.address.trim()) next.address = "Please fill in the address";
+        if (!form.location.trim()) next.address = "Please fill in the address";
 
         setErrors(next);
         return Object.keys(next).length === 0;
     }
+
     async function handleSubmit(e) {
         e.preventDefault();
         setServerMsg("");
@@ -77,30 +81,24 @@ export default function PostJob({ onSubmit }) {
 
         const payload = {
             title: form.title.trim(),
-            company: form.company.trim(),
-            jobType: form.jobType,
-            salary: { min: Number(form.salaryMin), max: Number(form.salaryMax) },
-            address: form.address.trim(),
+            location: form.location.trim(),
+            employmentType: Number(form.employmentType),
+            salaryMin: Number(form.salaryMin),
+            salaryMax: Number(form.salaryMax),
             description: form.description.trim(),
         };
-
+        console.log("Submitting:", payload);
         try {
             setSubmitting(true);
             if (onSubmit) {
                 await onSubmit(payload);
             } else {
-                // 默认直接调用后端
-                const res = await fetch("/api/hr/jobs", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-                if (!res.ok) throw new Error(`提交失败：${res.status}`);
+                await api.post(`/api/hr/companies/${companyId}/jobs`, payload);
             }
-            setServerMsg("发布成功！");
+            console.log("Post successfully!");
             setForm(initialState);
         } catch (err) {
-            setServerMsg(err.message || "提交失败");
+            console.log(err.message || "Post failed");
         } finally {
             setSubmitting(false);
         }
@@ -111,22 +109,39 @@ export default function PostJob({ onSubmit }) {
             <Navigation role={role} username={name} />
             <p className="subheading">Post Job Positions</p>
             <form className="card" onSubmit={handleSubmit} noValidate>
-                {/* Min Salary */}
+                {/* Job Title */}
                 <div>
-                    <label>Min Salary *</label>
+                    <label id="label-job-title">Job Title *</label>
                     <input
-                        type="number"
-                        min={0}
-                        inputMode="numeric"
-                        placeholder="e.g. 3500"
-                        value={form.salaryMin}
-                        onChange={(e) => updateField("salaryMin", e.target.value)}
+                        type="text"
+                        placeholder="e.g. Frontend Developer"
+                        value={form.title}
+                        onChange={(e) => updateField("title", e.target.value)}
+                        aria-labelledby="label-job-title"
+                        aria-invalid={!!errors.title}
+                        aria-describedby={errors.title ? "err-job-title" : ""}
                     />
-                    {errors.salaryMin && <p>{errors.salaryMin}</p>}
+                    {errors.title && <p id="err-job-title">{errors.title}</p>}
                 </div>
-
-                {/* 小间距 */}
-                <div style={{ height: 12 }} />
+                {/* Employment Type */}
+                <div>
+                    <label id="label-employment-type">Employment Type *</label>
+                    <select
+                        value={form.employmentType}
+                        onChange={(e) => updateField("employmentType", e.target.value)}
+                        aria-labelledby="label-employment-type"
+                        aria-invalid={!!errors.employmentType}
+                        aria-describedby={errors.employmentType ? "err-employment-type" : ""}
+                    >
+                        <option value="" disabled>
+                            -- Select Employment Type --
+                        </option>
+                        <option value={EMPLOYMENT_TYPE.FULL_TIME}>Full Time</option>
+                        <option value={EMPLOYMENT_TYPE.PART_TIME}>Part Time</option>
+                        <option value={EMPLOYMENT_TYPE.REMOTE}>Remote</option>
+                    </select>
+                    {errors.employmentType && <p id="err-employment-type">{errors.employmentType}</p>}
+                </div>
 
                 {/* Min Salary */}
                 <div>
@@ -140,7 +155,7 @@ export default function PostJob({ onSubmit }) {
                         onChange={(e) => updateField("salaryMin", e.target.value)}
                         aria-labelledby="label-min-salary"
                         aria-invalid={!!errors.salaryMin}
-                        aria-describedby={errors.salaryMin ? "err-min-salary" : undefined}
+                        aria-describedby={errors.salaryMin ? "err-min-salary" : ""}
                     />
                     {errors.salaryMin && <p id="err-min-salary">{errors.salaryMin}</p>}
                 </div>
@@ -157,7 +172,7 @@ export default function PostJob({ onSubmit }) {
                         onChange={(e) => updateField("salaryMax", e.target.value)}
                         aria-labelledby="label-max-salary"
                         aria-invalid={!!errors.salaryMax}
-                        aria-describedby={errors.salaryMax ? "err-max-salary" : undefined}
+                        aria-describedby={errors.salaryMax ? "err-max-salary" : ""}
                     />
                     {errors.salaryMax && <p id="err-max-salary">{errors.salaryMax}</p>}
                 </div>
@@ -168,13 +183,13 @@ export default function PostJob({ onSubmit }) {
                     <input
                         type="text"
                         placeholder="e.g. 1 Fusionopolis Way, Singapore"
-                        value={form.address}
-                        onChange={(e) => updateField("address", e.target.value)}
+                        value={form.location}
+                        onChange={(e) => updateField("location", e.target.value)}
                         aria-labelledby="label-address"
-                        aria-invalid={!!errors.address}
-                        aria-describedby={errors.address ? "err-address" : undefined}
+                        aria-invalid={!!errors.location}
+                        aria-describedby={errors.location ? "err-address" : ""}
                     />
-                    {errors.address && <p id="err-address">{errors.address}</p>}
+                    {errors.location && <p id="err-address">{errors.location}</p>}
                 </div>
 
                 {/* Description */}
@@ -187,13 +202,11 @@ export default function PostJob({ onSubmit }) {
                         onChange={(e) => updateField("description", e.target.value)}
                         aria-labelledby="label-desc"
                         aria-invalid={!!errors.description}
-                        aria-describedby={errors.description ? "err-desc" : undefined}
+                        aria-describedby={errors.description ? "err-desc" : ""}
                     />
                     {errors.description && <p id="err-desc">{errors.description}</p>}
                 </div>
 
-
-                {/* Actions */}
                 <div>
                     <button type="submit" disabled={submitting}>
                         {submitting ? "Posting…" : "Post Job Position"}
@@ -309,12 +322,12 @@ export default function PostJob({ onSubmit }) {
         *{box-sizing:border-box}
       `}</style>
 
-                {serverMsg && <div>{serverMsg}</div>}
+                {serverMsg && <div className="hint">{serverMsg}</div>}
             </form>
         </div>
     );
 
 }
 PostJob.propTypes = {
-  onSubmit: PropTypes.func, 
+    onSubmit: PropTypes.func,
 };
