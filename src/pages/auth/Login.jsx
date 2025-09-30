@@ -59,6 +59,7 @@ export default function Login() {
             const data = await login(form);
             localStorage.setItem("jobspring_token", data.token);
             localStorage.setItem("jobspring_user", JSON.stringify(data.user));
+            console.log("Login successful:", localStorage.getItem("jobspring_user"));
 
             switch (data.user.role) {
                 case 0: // Candidate
