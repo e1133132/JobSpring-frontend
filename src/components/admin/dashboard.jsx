@@ -13,10 +13,10 @@ export default function AdminDashboard() {
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [locking, setLocking] = useState(new Set());
-  const [type, setType] = useState("all");
-  const [query, setQuery] = useState("");
-  const [t, sett] = useState("all");
-  
+  const [type, ] = useState("all");
+  const [query, ] = useState("");
+  const [, sett] = useState("all");
+
   const isInvalid = (s) => s === 1 || s === "invalid";
   const statusLabel = (s) => (isInvalid(s) ? "inactive" : "active");
   useEffect(() => {
