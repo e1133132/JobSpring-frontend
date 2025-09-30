@@ -13,6 +13,10 @@ export default function AdminDashboard() {
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [locking, setLocking] = useState(new Set());
+  const [type, setType] = useState("all");
+  const [query, setQuery] = useState("");
+  const [t, sett] = useState("all");
+  
   const isInvalid = (s) => s === 1 || s === "invalid";
   const statusLabel = (s) => (isInvalid(s) ? "inactive" : "active");
   useEffect(() => {
@@ -56,8 +60,7 @@ export default function AdminDashboard() {
       setJobs(list);
     } catch (e) {
       console.error("Error searching jobs:", e);
-    } finally {
-    }
+    } 
   };
 
   const invalidJob = async (companyId, jobId) => {
