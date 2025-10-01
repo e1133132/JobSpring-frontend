@@ -9,7 +9,10 @@ import {FaRegStar, FaStar} from "react-icons/fa";
 export default function JobDetail() {
     const { id } = useParams();
     const [job, setJob] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [isFavorited, setIsFavorited] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [showUpload, setShowUpload] = useState(false);
     const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
     const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
@@ -29,7 +32,7 @@ export default function JobDetail() {
             try {
                 const token = localStorage.getItem("jobspring_token");
                 if (!token) return;
-                const res = await api.get(`/api/favorites/${id}/is-favorited`, {
+                const res = await api.get(`/api/job_favorites/${id}/is-favorited`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setIsFavorited(res.data === true);
@@ -38,9 +41,24 @@ export default function JobDetail() {
             }
         };
 
+        const fetchProfile = async () => {
+            try {
+                const token = localStorage.getItem("jobspring_token");
+                if (!token) return;
+                const res = await api.get("/api/profile", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setProfile(res.data);
+            } catch (e) {
+                console.error("Failed to fetch profile:", e);
+            }
+        };
+
         fetchJob();
-        fetchFavoriteStatus()
+        fetchFavoriteStatus();
+        fetchProfile();
     }, [id]);
+
 
     if (!job) return <div className="section">Job not found.</div>;
 
@@ -70,13 +88,38 @@ export default function JobDetail() {
         }
     };
 
-    const handleApply = () => {
-        alert("Apply success!");
+    const handleApply = async () => {
+        if (!selectedFile) {
+            alert("Please upload your resume file before applying!");
+            return;
+        }
 
-        // TODO: 这里预留提交逻辑
-        // axios.post("/api/job/apply", { jobId: job.id, userId: ... })
-        //   .then(() => alert("Apply success!"))
-        //   .catch(err => console.error("Apply failed:", err));
+        try {
+            const token = localStorage.getItem("jobspring_token");
+            if (!token) {
+                alert("Please login first!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("resumeProfile", profile?.profile?.summary || "No profile data");
+            formData.append("file", selectedFile);
+
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+
+            const res = await api.post(`/api/applications/${id}/applications`, formData, );
+
+            console.log("Response:", res);
+
+            alert("Apply success!");
+            setShowUpload(false);
+            setSelectedFile(null);
+        } catch (e) {
+            console.error("Failed to apply:", e);
+            alert("Apply failed!");
+        }
     };
 
     const toggleFavorite = async () => {
@@ -87,13 +130,13 @@ export default function JobDetail() {
                 return;
             }
             if (isFavorited) {
-                await api.delete(`/api/favorites/${id}`, {
+                await api.delete(`/api/job_favorites/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setIsFavorited(false);
                 alert(`Removed from favorites: ${job.title}`);
             } else {
-                await api.post(`/api/favorites/${id}`, {}, {
+                await api.post(`/api/job_favorites/${id}`, {}, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setIsFavorited(true);
@@ -142,7 +185,7 @@ export default function JobDetail() {
                         <p style={{ lineHeight: 1.6, color: "#333" }}>{job.description}</p>
 
                         <div className="cta" style={{marginTop: "20px"}}>
-                            <button className="btn" onClick={handleApply}>Apply Now</button>
+                            <button className="btn" onClick={() => setShowUpload(true)}>Apply Now</button>
                             <button
                                 className="tab-btn ghost"
                                 onClick={toggleFavorite}
@@ -157,12 +200,47 @@ export default function JobDetail() {
                 {/* 右边 */}
                 <div style={{flex: "1 1 300px", minWidth: "260px"}}>
                     <article className="card" style={{padding: "20px"}}>
-                        <h3 style={{marginBottom: "10px" }}>Company Info</h3>
-                        <p style={{ fontWeight: 600 }}>Name:{job.company}</p>
+                        <h3 style={{marginBottom: "10px"}}>Company Info</h3>
+                        <p style={{fontWeight: 600}}>Name:{job.company}</p>
                         <p className="muted">Location: {job.location}</p>
                     </article>
                 </div>
             </main>
+
+            {showUpload && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        background: "rgba(0,0,0,.5)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        zIndex: 1000
+                    }}
+                >
+                    <div
+                        style={{
+                            background: "#fff",
+                            padding: "24px",
+                            borderRadius: "8px",
+                            width: "400px",
+                            textAlign: "center"
+                        }}
+                    >
+                        <h3>Upload Resume (PDF)</h3>
+                        <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={(e) => setSelectedFile(e.target.files[0])}
+                            style={{ marginTop: "10px" }}
+                        />
+                        <div style={{ marginTop: "20px", display: "flex", gap: "10px", justifyContent: "center" }}>
+                            <button className="btn" onClick={handleApply}>Submit</button>
+                            <button className="btn ghost" onClick={() => setShowUpload(false)}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             <style>{`
         *{box-sizing:border-box}
