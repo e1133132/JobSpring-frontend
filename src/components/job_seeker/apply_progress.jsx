@@ -17,7 +17,7 @@ const TABS = [
   { key: "submitted", label: "Submitted" },
   { key: "viewed", label: "Viewed" },
   { key: "resume_passed", label: "Resume Passed" },
-  { key: "saved", label: "saved" }
+  { key: "saved", label: "Saved" }
 ];
 
 function formatDate(iso) {
@@ -68,7 +68,7 @@ export default function Apply_progress({ data = sampleApps }) {
     const fetchSaved = async () => {
       try {
         const token = localStorage.getItem("jobspring_token");
-        const res = await axios.get("/api/favorites", {
+        const res = await axios.get("/api/job_favorites", {
           headers: { Authorization: `Bearer ${token}` },
           params: { page: 0, size: 50 }
         });
