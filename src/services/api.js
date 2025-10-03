@@ -21,11 +21,5 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// attach token from localStorage if present
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('jobspring_token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-});
 
 export default api;
