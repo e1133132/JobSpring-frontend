@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "env": {
+    "VITE_API_BASE_URL": "https://jobspring-api-1017446401249.asia-southeast1.run.app"
+  }
+}
