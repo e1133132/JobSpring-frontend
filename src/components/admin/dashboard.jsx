@@ -8,7 +8,6 @@ export default function AdminDashboard() {
   const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
-  const [activeTab,] = useState("jobs");
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [locking, setLocking] = useState(new Set());
