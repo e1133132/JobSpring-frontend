@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "../../App.css";
-import axios from "axios";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api.js";
 
 export default function ReviewUpload() {
     const [form, setForm] = useState({
@@ -11,6 +11,7 @@ export default function ReviewUpload() {
         title: "",
         content: "",
         rating: "5",
+        imageFile: null,
     });
     const [loading, setLoading] = useState(false);
     const role = getCurrentUser() ? getCurrentUser().role : "guest";
@@ -22,13 +23,31 @@ export default function ReviewUpload() {
         setForm({ ...form, [name]: value });
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setForm({ ...form, imageFile: file });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!form.imageFile) {
+            alert("Please upload images before submitting!");
+            return;
+        }
 
         try {
             setLoading(true);
             const token = localStorage.getItem("jobspring_token");
-            const response = await axios.post(
+
+            const formData = new FormData();
+            formData.append("applicationId", form.applicationId);
+            formData.append("title", form.title);
+            formData.append("content", form.content);
+            formData.append("rating", form.rating);
+            formData.append("file", form.imageFile);
+
+            const response = await api.post(
                 "/api/job_seeker/postReview",
                 {
                     applicationId: Number(form.applicationId),
@@ -51,6 +70,7 @@ export default function ReviewUpload() {
                 title: "",
                 content: "",
                 rating: "5",
+                imageFile: null,
             });
         } catch (error) {
             console.error("Error submitting review:", error);
@@ -103,6 +123,21 @@ export default function ReviewUpload() {
                         placeholder="Write your review here"
                         required
                     />
+                </div>
+
+                <div>
+                    <label>Upload Supporting Image *</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        required
+                    />
+                    {form.imageFile && (
+                        <p style={{fontSize: "14px", color: "#16a34a", marginTop: "6px"}}>
+                            Selected: {form.imageFile.name}
+                        </p>
+                    )}
                 </div>
 
                 <div>
@@ -215,7 +250,7 @@ export default function ReviewUpload() {
 
             <footer
                 className="section"
-                style={{paddingBottom: 40, textAlign: "center"}}
+                style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}
             >
                 <div className="muted">
                     © {new Date().getFullYear()} MySite. All rights reserved.
