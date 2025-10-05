@@ -1,15 +1,15 @@
 // src/components/Navigation.jsx
 import React, { useMemo, useState } from "react";
-import { NavLink} from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { logout } from "../services/authService";
 import jobSpringLogo from "../assets/jobspringt.png";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 function buildTopMenus(role) {
   if (role === "guest") {
     return [
       { key: "home", label: "Home", to: "/home" },
-      { key: "community", label: "Community", to: "/community" },
       { key: "login", label: "Login", to: "/auth/login" },
       { key: "register", label: "Register", to: "/auth/register" },
     ];
@@ -17,14 +17,12 @@ function buildTopMenus(role) {
   if (role === 0) { // job seeker
     return [
       { key: "home", label: "Home", to: "/home" },
-      { key: "community", label: "Community", to: "/community" },
       { key: "logout", label: "logout", action: "logoutUser" },
     ];
   }
   if (role === 1) { // hr
     return [
       { key: "home", label: "Home", to: "/home" },
-      { key: "community", label: "Community", to: "/community" },
       { key: "logout", label: "logout", action: "logoutUser" },
     ];
   }
@@ -32,13 +30,12 @@ function buildTopMenus(role) {
     return [
       { key: "jobs", label: "manage job position", to: "/admin/status" },
       { key: "audit", label: "Audit review", to: "/admin/audit" },
-      { key: "logout", label: "Logout", action: "logoutUser" },
+      { key: "logout", label: "Logout", action: "logoutAdmin" },
     ];
   }
 
   return [
     { key: "home", label: "Home", to: "/home" },
-    { key: "community", label: "Community", to: "/community" },
     { key: "login", label: "Login", to: "/auth/login" },
     { key: "register", label: "Register", to: "/auth/register" },
   ];
@@ -68,10 +65,22 @@ export default function Navigation({ role = "guest", username = "guest" }) {
   console.log(role);
   const menus = buildTopMenus(role);
   const dropdown = useMemo(() => buildDropdown(role), [role]);
+  const navigate = useNavigate();
+
 
   const logoutUser = async () => {
     logout();
     window.location.reload();
+  };
+
+  const logoutAdmin = async () => {
+    logout();
+    navigate("/auth/login")
+  };
+
+    const ACTIONS = {
+    logoutUser,
+    logoutAdmin,
   };
 
   return (
@@ -88,13 +97,15 @@ export default function Navigation({ role = "guest", username = "guest" }) {
           </div>
           <div className="spacer" />
           <div className="tabs" role="tablist" aria-label="Primary">
-            {menus.map((t) =>
-              t.action === "logoutUser" ? (
+            {menus.map((t) => {
+              const onAction = t.action ? ACTIONS[t.action] : null;
+
+              return onAction ? (
                 <button
                   key={t.key}
                   type="button"
                   className="tab-btn"
-                  onClick={logoutUser}
+                  onClick={onAction}
                 >
                   {t.label}
                 </button>
@@ -106,8 +117,8 @@ export default function Navigation({ role = "guest", username = "guest" }) {
                 >
                   {t.label}
                 </NavLink>
-              )
-            )}
+              );
+            })}
           </div>
           {(role === 0 || role === 1) && (
             <div className="user">
