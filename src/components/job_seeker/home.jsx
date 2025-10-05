@@ -197,7 +197,8 @@ export default function Home() {
         *{box-sizing:border-box}
       `}</style>
 
-      <footer className="section" style={{ paddingBottom: 40 }}>
+      <footer className="section"
+              style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}>
         <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
       </footer>
     </div>

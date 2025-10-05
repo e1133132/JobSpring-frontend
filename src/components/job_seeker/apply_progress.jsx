@@ -1,22 +1,22 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import "../../App.css";
 import PropTypes from "prop-types";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 import axios from "axios";
+import api from "../../services/api.js";
+import { Link } from "react-router-dom";
 
-
-const sampleApps = [
-  { id: 1, title: "Frontend Engineer", company: "LHT Digital", status: "submitted", appliedAt: "2025-09-20T10:12:00Z" },
-  { id: 2, title: "Backend Engineer", company: "ACME Corp", status: "viewed", appliedAt: "2025-09-19T09:01:00Z" },
-  { id: 3, title: "Fullstack Developer", company: "TechFlow", status: "resume_passed", appliedAt: "2025-09-18T14:20:00Z" },
-  { id: 4, title: "DevOps Engineer", company: "Cloudy", status: "submitted", appliedAt: "2025-09-17T08:30:00Z" },
-];
+const STATUS_MAP = {
+  0: "submitted",
+  1: "viewed",
+  2: "resume_passed",
+};
 
 const TABS = [
   { key: "submitted", label: "Submitted" },
   { key: "viewed", label: "Viewed" },
-  { key: "resume_passed", label: "Resume Passed" },
+  { key: "resume_passed", label: "Passed" },
   { key: "saved", label: "Saved" }
 ];
 
@@ -34,35 +34,40 @@ function formatDate(iso) {
   }
 }
 
-export default function Apply_progress({ data = sampleApps }) {
+export default function Apply_progress() {
   const [active, setActive] = useState("submitted");
+  const [applications, setApplications] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedCount, setSavedCount] = useState(0);
   const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
-  // 防御：保证是数组，并按申请时间倒序
-  const safeData = useMemo(() => {
-    const arr = Array.isArray(data) ? data : [];
-    return [...arr].sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
-  }, [data]);
-
-  // 各状态计数
-  const counts = useMemo(() => {
-    const c = { submitted: 0, viewed: 0, resume_passed: 0 };
-    for (const it of safeData) {
-      if (it?.status && (Object.hasOwn?.(c, it.status) || Object.prototype.hasOwnProperty.call(c, it.status))) {
-        c[it.status]++;
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = localStorage.getItem("jobspring_token");
+        const res = await api.get("/api/job_seeker/applications", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const list = res.data.content || [];
+        setApplications(list);
+      } catch (err) {
+        console.error("Error fetching applications:", err);
       }
-    }
-    return c;
-  }, [safeData]);
+    };
+    fetchApplications();
+  }, []);
 
-  // 当前列表
-  const currentList = useMemo(
-    () => safeData.filter((it) => it?.status === active),
-    [safeData, active]
-  );
+  const currentList =
+      active === "saved"
+          ? savedJobs
+          : applications.filter((it) => STATUS_MAP[it.status] === active);
+
+  const counts = {
+    submitted: applications.filter((it) => it.status === 0).length,
+    viewed: applications.filter((it) => it.status === 1).length,
+    resume_passed: applications.filter((it) => it.status === 2).length,
+  };
 
   useEffect(() => {
     const fetchSaved = async () => {
@@ -82,65 +87,88 @@ export default function Apply_progress({ data = sampleApps }) {
   }, [active]);
 
   return (
-    <div className="app-root">
-      <Navigation role={role} username={name} />
-      <p className="subheading">Application Progress and Saved</p>
-      <main className="section" style={{ marginTop: "10px" }}>
-        <div className="tabs" role="tablist" aria-label="Applications Status" style={{marginBottom: "16px"}}>
-          {TABS.map((t) => {
-            let badgeCount = counts[t.key] ?? 0;
-            if (t.key === "saved") {
-              badgeCount = savedCount;
-            }
-            return (
-                <button
-                    key={t.key}
-                    className={`tab-btn ${active === t.key ? "active" : ""}`}
-                    onClick={() => setActive(t.key)}
-                    role="tab"
-                    aria-selected={active === t.key}
-                >
-                  {t.label}
-                  <span className="badge">{badgeCount}</span>
-                </button>
-            );
-          })}
-        </div>
+      <div className="app-root">
+        <Navigation role={role} username={name}/>
+        <p className="subheading">Application Progress and Saved</p>
+        <main className="section" style={{marginTop: "10px"}}>
+          <div className="tabs" role="tablist" aria-label="Applications Status" style={{marginBottom: "16px"}}>
+            {TABS.map((t) => {
+              let badgeCount = counts[t.key] ?? 0;
+              if (t.key === "saved") {
+                badgeCount = savedCount;
+              }
+              return (
+                  <button
+                      key={t.key}
+                      className={`tab-btn ${active === t.key ? "active" : ""}`}
+                      onClick={() => setActive(t.key)}
+                      role="tab"
+                      aria-selected={active === t.key}
+                  >
+                    {t.label}
+                    <span className="badge">{badgeCount}</span>
+                  </button>
+              );
+            })}
+          </div>
 
-        {/* 列表 */}
-        <div className="list">
-          {active === "saved" ? (
-              savedJobs.length === 0 ? (
-                  <div className="empty">No saved jobs yet.</div>
-              ) : (
-                  savedJobs.map((job) => (
-                      <div key={job.id} className="app-card">
-                        <div className="app-title">{job.title}</div>
-                        <div className="app-meta">
-                          <span className="company">{job.company}</span>
-                          <span className="dot">•</span>
-                          <span className="date">{formatDate(job.favoritedAt)}</span>
+          {/* 列表 */}
+          <div className="list">
+            {active === "saved" ? (
+                savedJobs.length === 0 ? (
+                    <div className="empty">No saved jobs yet.</div>
+                ) : (
+                    savedJobs.map((job) => (
+                        <div key={job.id} className="app-card">
+                          <div className="app-title"><Link
+                              to={`/jobs/${job.jobId}`}
+                              style={{
+                                color: "#2563eb",
+                                textDecoration: "none",
+                                fontWeight: "700",
+                              }}
+                              onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                              onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+                          >
+                            {job.title}
+                          </Link></div>
+                          <div className="app-meta">
+                            <span className="company">{job.company}</span>
+                            <span className="dot">•</span>
+                            <span className="date">{formatDate(job.favoritedAt)}</span>
+                          </div>
                         </div>
-                      </div>
-                  ))
-              )
-          ) : (currentList.length === 0 ? (
-            <div className="empty">No applications in this status.</div>
-          ) : (
-            currentList.map((it) => (
-              <div key={it.id} className="app-card">
-                <div className="app-title">{it.title}</div>
-                <div className="app-meta">
-                  <span className="company">{it.company}</span>
-                  <span className="dot">•</span>
-                  <span className="date">{formatDate(it.appliedAt)}</span>
-                </div>
-              </div>
-            )))
-          )}
-        </div>
-      </main>
-      <style>{`
+                    ))
+                )
+            ) : (currentList.length === 0 ? (
+                    <div className="empty">No applications in this status.</div>
+                ) : (
+                    currentList.map((it) => (
+                        <div key={it.id} className="app-card">
+                          <div className="app-title">
+                            <Link
+                                to={`/jobs/${it.jobId}`}
+                                style={{
+                                  color: "#2563eb",
+                                  textDecoration: "none",
+                                  fontWeight: "700",
+                                }}
+                                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+                            >
+                              {it.jobTitle}
+                            </Link></div>
+                          <div className="app-meta">
+                            <span className="company">{it.companyName}</span>
+                            <span className="dot">•</span>
+                            <span className="date">{formatDate(it.appliedAt)}</span>
+                          </div>
+                        </div>
+                    )))
+            )}
+          </div>
+        </main>
+        <style>{`
        *{box-sizing:border-box}
 
          box-shadow:var(--ring)}
@@ -163,16 +191,25 @@ export default function Apply_progress({ data = sampleApps }) {
           border: 1px dashed #e5e7eb; border-radius: 12px; background: #f9fafb;
         }
       `}</style>
-    </div>
+
+        <footer
+            className="section"
+            style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}
+        >
+          <div className="muted">
+            © {new Date().getFullYear()} MySite. All rights reserved.
+          </div>
+        </footer>
+      </div>
   );
 }
 Apply_progress.propTypes = {
   data: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-      title: PropTypes.string,
-      company: PropTypes.string,
-      status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+        title: PropTypes.string,
+        company: PropTypes.string,
+        status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
       appliedAt: PropTypes.string, // ISO string
     })
   ),
