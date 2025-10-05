@@ -6,19 +6,16 @@ import Navigation from "../navigation.jsx";
 
 const STATUS_MAP = {
   0: "Submitted",
-  1: "Screening",
-  2: "Interview Scheduled",
-  3: "Interviewing",
-  4: "Approved",
-  5: "Rejected",
-  6: "Withdrawn",
-  7: "Invalid",
+  1: "Selecting",
+  2: "Passed",
+  3: "Rejected",
+  4: "Invalid",
 };
 
 const statusText = (s) => STATUS_MAP[s] ?? `Unknown(${s})`;
 const statusClass = (s) => {
-  if (s === 4) return "approved";
-  if (s === 5 || s === 7) return "invalid";
+  if (s === 2) return "passed";
+  if (s === 4) return "invalid";
   if (s === 0) return "pending";
   return "info";
 };
@@ -94,13 +91,10 @@ export default function CheckApplication() {
           >
             <option value="all">All statuses</option>
             <option value="0">Submitted</option>
-            <option value="1">Screening</option>
-            <option value="2">Interview Scheduled</option>
-            <option value="3">Interviewing</option>
-            <option value="4">Approved</option>
-            <option value="5">Rejected</option>
-            <option value="6">Withdrawn</option>
-            <option value="7">Invalid</option>
+            <option value="1">Selecting</option>
+            <option value="2">Passed</option>
+            <option value="3">Rejected</option>
+            <option value="4">Invalid</option>
           </select>
           <button className="btn ghost" onClick={() => { setQ(""); setFilter("all"); }}>
             Reset
@@ -141,11 +135,12 @@ export default function CheckApplication() {
                         Applied at: {new Date(a.appliedAt).toLocaleString()}
                       </span>
                     )}
-                    {a.resumeUrl && (
-                      <a className="pill" href={a.resumeUrl} target="_blank" rel="noreferrer">
-                        View Resume
-                      </a>
-                    )}
+                    {<button className="btn" style={{ fontSize: 15, padding: "6px 10px",marginLeft: 'auto',transform: "translateY(-15px)" }}
+                    onClick={() => 
+                    { 
+                      }}> 
+                      Applicant Detail 
+                    </button>}
                   </div>
                 </div>
                 <div className="actions" />

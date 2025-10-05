@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from "react";
-import Profile from "./profile";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
@@ -119,13 +118,13 @@ export default function AdminDashboard() {
           </button>
         </section>
 
-        {activeTab === "jobs" ? (
           <main className="section" aria-label="Jobs list">
             <h2>Jobs</h2>
-            <div className="muted" style={{ marginBottom: 8 }}>
+            <div className="muted" style={{ marginBottom: 10 }}>
               Showing {filtered?.length} result{filtered?.length === 1 ? "" : "s"}
             </div>
-            <div className="grid">
+            <div className="grid"
+            style={{display:'flex', flexDirection:'column', gap:13}}>
               {filtered?.length === 0 && <div className="muted">No jobs found.</div>}
               {filtered?.map((j) => (
                 <article key={j.id} className="card" aria-label={`Job ${j.id}`}>
@@ -155,9 +154,6 @@ export default function AdminDashboard() {
               ))}
             </div>
           </main>
-        ) : (
-          <Profile />
-        )}
         <style>{`
         *{box-sizing:border-box}
 

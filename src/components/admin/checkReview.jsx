@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
+import { useNavigate } from "react-router-dom";
 
 export default function CheckReview() {
     const [reviews, setReviews] = useState([]);
@@ -12,6 +13,7 @@ export default function CheckReview() {
     const [pending, setPending] = React.useState({});
     const [decided, setDecided] = React.useState({});
     const [note,] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchAllReview();
@@ -104,14 +106,14 @@ export default function CheckReview() {
                 (r.id === id ? { ...r, status: 2 } : r)));
         } catch (err) {
             setDecided((s) => {
-                const next = { ...s };  
+                const next = { ...s };
                 delete next[id];
                 return next;
             });
             console.error("reject review failed:", err.response?.data || err.message);
         } finally {
             setPending((s) => {
-                const next = { ...s };  
+                const next = { ...s };
                 delete next[id];
                 return next;
             });
@@ -222,6 +224,12 @@ export default function CheckReview() {
                                                 {busyReject ? "rejecting…" : "reject"}
                                             </button>
                                         )}
+                                        <button
+                                            className="btnDetail"
+                                           onClick={() => navigate("/admin/audit/reviewDetail")}
+                                        >
+                                            Review Detail
+                                        </button>
                                     </div>
                                 </article>
                             );
@@ -243,7 +251,7 @@ export default function CheckReview() {
             cursor: not-allowed;
             pointer-events: none;
             }
-
+          .btnDetail{ height:46px; padding:0 16px; border-radius:12px; border:0; background: linear-gradient(135deg, #FFFF66, var(--accent-2)); color:#042f2e; font-weight:800; cursor:pointer; }
           .ghost{ background:#fff; border:1px solid var(--border); color:#0f172a; }
           .ghost:hover{ border-color: rgba(34,197,94,.45); }
           .section{ width:100%; background:var(--section); margin:0; padding:24px; border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
