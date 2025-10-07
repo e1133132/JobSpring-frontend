@@ -35,7 +35,7 @@ function detectFileKind(url) {
     return "other";
 }
 
-export default function ApplicationDetail({ }) {
+export default function ApplicationDetail() {
     const { state } = useLocation();
     const id = Number(state?.id);
     const navigate = useNavigate();
@@ -80,8 +80,6 @@ export default function ApplicationDetail({ }) {
                 error.response?.status === 403
                     ? (error.response?.data?.message ?? "No permission (HR role & company binding required).")
                     : error.response?.data?.message || error.message || "Request failed.";
-            setErrMsg(msg);
-            setApps([]);
             console.error("FETCH /api/hr/applications:", error.response ?? error);
         }
     }
@@ -151,7 +149,7 @@ export default function ApplicationDetail({ }) {
 
                         {fileUrl && fileKind === "other" && (
                             <div className="muted">
-                                This type of file cannot be previewed within the current window. Please use "Open in New Window" or "Download Attachment" to view it.
+                                This type of file cannot be previewed within the current window. Please use &quot;Open in New Window&quot; or &quot;Download Attachment&quot; to view it.
                             </div>
                         )}
 
