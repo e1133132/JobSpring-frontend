@@ -14,6 +14,7 @@ jobs:
         id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
         run: |
           set -e
