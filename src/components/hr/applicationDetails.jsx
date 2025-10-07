@@ -76,10 +76,6 @@ export default function ApplicationDetail() {
         try {
             await api.patch(`/api/hr/applications/${id}/status`, status);
         } catch (error) {
-            const msg =
-                error.response?.status === 403
-                    ? (error.response?.data?.message ?? "No permission (HR role & company binding required).")
-                    : error.response?.data?.message || error.message || "Request failed.";
             console.error("FETCH /api/hr/applications:", error.response ?? error);
         }
     }
