@@ -1,0 +1,44 @@
+name: DAST-Vercel
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  zap-baseline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Vercel Preview URL for this commit
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
+        run: |
+          set -e
+          TEAM_ARG=""
+          if [ -n "$VERCEL_TEAM_ID" ]; then TEAM_ARG="&teamId=$VERCEL_TEAM_ID"; fi
+          JSON=$(curl -fsSL -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/deployments?app=$VERCEL_PROJECT&target=preview&limit=50$TEAM_ARG")
+          URL=$(echo "$JSON" | jq -r --arg SHA "${{ github.sha }}" \
+            '.deployments[] | select(.meta.githubCommitSha == $SHA) | .url' | head -n1)
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "wrong environment."
+            exit 1
+          fi
+          echo "preview=https://$URL" >> $GITHUB_OUTPUT
+          echo "Found preview: https://$URL"
+
+      - name: ZAP Baseline scan (Preview)
+        uses: zaproxy/action-baseline@v0.11.0
+        with:
+          target: ${{ steps.vercel.outputs.preview }}
+
+      - name: Upload ZAP reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-baseline-${{ github.sha }}
+          path: |
+            zap_baseline_report.html
+            zap_baseline_report.md

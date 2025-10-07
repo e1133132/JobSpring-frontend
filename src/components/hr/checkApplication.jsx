@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
+import { useNavigate } from "react-router-dom";
+
 
 const STATUS_MAP = {
   0: "Submitted",
@@ -27,6 +29,7 @@ export default function CheckApplication() {
   const [role] = useState(getCurrentUser() ? getCurrentUser().role : "guest");
   const [name] = useState(getCurrentUser() ? getCurrentUser().fullName : "guest");
   const [errMsg, setErrMsg] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchApplications();
@@ -136,10 +139,8 @@ export default function CheckApplication() {
                       </span>
                     )}
                     {<button className="btn" style={{ fontSize: 15, padding: "6px 10px",marginLeft: 'auto',transform: "translateY(-15px)" }}
-                    onClick={() => 
-                    { 
-                      }}> 
-                      Applicant Detail 
+                    onClick={() => navigate("/hr/applications/applicationDetail", { state: { id: a.id } })}> 
+                      Manage 
                     </button>}
                   </div>
                 </div>
