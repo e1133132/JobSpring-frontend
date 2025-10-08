@@ -71,7 +71,7 @@ export default function ReviewDetail() {
         return () => {
             canceled = true;
         };
-    }, [reviewId]);
+    }, []);
 
     if (loading) {
         return (
