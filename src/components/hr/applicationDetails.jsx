@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navigation from "../navigation.jsx";
 import { FaArrowLeft } from "react-icons/fa";
+import Swal from 'sweetalert2';
 import api from "../../services/api.js";
 
 import { getCurrentUser } from "../../services/authService";
@@ -21,19 +22,45 @@ function formatDate(iso) {
     }
 }
 
+function stripBase64Prefix(b64) {
+    if (!b64) return "";
+    const i = b64.indexOf("base64,");
+    return i >= 0 ? b64.slice(i + "base64,".length) : b64;
+}
+
+function isPdfBase64(b64) {
+    if (!b64) return false;
+    const raw = stripBase64Prefix(b64);
+    return raw.startsWith("JVBERi0");
+}
+function base64ToBlob(b64, mime = "application/octet-stream") {
+    const raw = stripBase64Prefix(b64);
+    const byteChars = atob(raw);
+    const len = byteChars.length;
+    const chunk = 1024 * 1024; 
+    const chunks = [];
+    for (let i = 0; i < len; i += chunk) {
+        const end = Math.min(i + chunk, len);
+        const slice = byteChars.slice(i, end);
+        const arr = new Array(slice.length);
+        for (let j = 0; j < slice.length; j++) arr[j] = slice.charCodeAt(j);
+        chunks.push(new Uint8Array(arr));
+    }
+    return new Blob(chunks, { type: mime });
+}
+
+function toPdfDataUrl(b64) {
+    if (!b64) return "";
+    if (b64.startsWith("data:")) return b64;
+    return `data:application/pdf;base64,${stripBase64Prefix(b64)}`;
+}
+
 function buildFileUrl(url) {
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
     return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
-function detectFileKind(url) {
-    if (!url) return "none";
-    const lower = url.split("?")[0].toLowerCase();
-    if (lower.endsWith(".pdf")) return "pdf";
-    if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(lower)) return "image";
-    return "other";
-}
 
 export default function ApplicationDetail() {
     const { state } = useLocation();
@@ -45,6 +72,7 @@ export default function ApplicationDetail() {
     const [, setLoading] = useState(true);
     const [updating,] = useState(false);
     const [, setError] = useState("");
+    const [previewUrl, setPreviewUrl] = useState("");
 
     useEffect(() => {
         load();
@@ -68,31 +96,75 @@ export default function ApplicationDetail() {
         }
     }
 
-    const fileUrl = useMemo(() => buildFileUrl(data?.resumeUrl), [data]);
-    const fileKind = useMemo(() => detectFileKind(fileUrl), [fileUrl]);
+    const rawFile = data?.resumeUrl;
+
+    const fileKind = useMemo(() => {
+        if (!rawFile) return "none";
+        if (rawFile.startsWith("data:")) {
+            return rawFile.includes("application/pdf") ? "pdf" : "other";
+        }
+        if (isPdfBase64(rawFile)) return "pdf";
+
+        const lower = rawFile.split("?")[0].toLowerCase();
+        if (lower.startsWith("http")) {
+            if (lower.endsWith(".pdf")) return "pdf";
+            if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(lower)) return "image";
+            return "other";
+        }
+        return "other";
+    }, [rawFile]);
+
+
+
+    useEffect(() => {
+        let toRevoke = "";
+        if (!rawFile) { setPreviewUrl(""); return; }
+
+        if (fileKind === "pdf") {
+            if (rawFile.startsWith("data:")) {
+                setPreviewUrl(rawFile);
+            } else if (isPdfBase64(rawFile)) {
+                const blob = base64ToBlob(rawFile, "application/pdf");
+                const url = URL.createObjectURL(blob);
+                setPreviewUrl(url);
+                toRevoke = url;
+            } else if (/^https?:\/\//i.test(rawFile)) {
+                setPreviewUrl(buildFileUrl(rawFile));
+            } else {
+                setPreviewUrl(toPdfDataUrl(rawFile));
+            }
+        } else {
+            setPreviewUrl(buildFileUrl(rawFile));
+        }
+
+        return () => {
+            if (toRevoke) URL.revokeObjectURL(toRevoke);
+        };
+    }, [rawFile, fileKind]);
+
     const statusInfo = STATUS_MAP[data?.status ?? 0] ?? STATUS_MAP[0];
 
     async function handleUpdateStatus(status) {
         try {
-            await api.patch(`/api/hr/applications/${id}/status`, status);
+            await api.patch(`/api/hr/applications/${id}/status`, {status});
+            const word=status===2?'passed':'rejected';
+            Swal.fire('Success', 'Application status '+word, 'success');
         } catch (error) {
-            console.error("FETCH /api/hr/applications:", error.response ?? error);
+            console.error("/api/hr/applications:", error.response ?? error);
         }
     }
-
-
 
     return (
         <div className="app-root">
             <Navigation role={role} username={name} />
-            <div className="topbar">
+            <div className="topbar" style={{ marginLeft: "24px" }}>
                 <button className="btn ghost flex items-center gap-2" onClick={() => navigate(-1)}>
                     <FaArrowLeft className="icon" aria-hidden="true" />
-                    <span>Back</span>
+                    <span >Back</span>
                 </button>
             </div>
 
-            <div className="card">
+            <div className="card" style={{ margin: "12px 24px"}}>
                 <header className="header">
                     <div>
                         <div className="title">Application #{data.id}</div>
@@ -113,11 +185,9 @@ export default function ApplicationDetail() {
                     <div className="preview-head">
                         <div className="ph-title">Resume Preview</div>
                         <div className="ph-actions">
-                            {fileUrl && (
+                            {previewUrl && (
                                 <>
-                                    <a className="btn small" href={fileUrl} target="_blank" rel="noopener noreferrer">new window open</a>
-                                    {/* 注意：跨域/无 Content-Disposition 时，download 属性可能无效；提供新窗口打开作为兜底 */}
-                                    <a className="btn primary small" href={fileUrl} download>download resume</a>
+                                    <a className="btn primary small" href={previewUrl} download>download resume</a>
                                 </>
                             )}
                         </div>
@@ -125,31 +195,31 @@ export default function ApplicationDetail() {
 
 
                     <div className="preview-pane" aria-label="Resume preview">
-                        {!fileUrl && (
+                        {!previewUrl && (
                             <div className="muted">No Document{data.resumeProfile ? "text abstract:" : ""}</div>
                         )}
 
-                        {fileUrl && fileKind === "pdf" && (
+                        {previewUrl && fileKind === "pdf" && (
                             <iframe
                                 title="resume-pdf"
-                                src={`${fileUrl}#toolbar=1&navpanes=0`}
+                                src={`${previewUrl}#toolbar=1&navpanes=0`}
                                 style={{ width: "100%", height: "100%", border: 0 }}
                             />
                         )}
 
-                        {fileUrl && fileKind === "image" && (
+                        {previewUrl && fileKind === "image" && (
                             <div className="img-box">
-                                <img src={fileUrl} alt="Resume Image" />
+                                <img src={previewUrl} alt="Resume Image" />
                             </div>
                         )}
 
-                        {fileUrl && fileKind === "other" && (
+                        {previewUrl && fileKind === "other" && (
                             <div className="muted">
                                 This type of file cannot be previewed within the current window. Please use &quot;Open in New Window&quot; or &quot;Download Attachment&quot; to view it.
                             </div>
                         )}
 
-                        {!fileUrl && data.resumeProfile && (
+                        {!previewUrl && data.resumeProfile && (
                             <pre className="text-preview">{data.resumeProfile}</pre>
                         )}
                     </div>
@@ -177,7 +247,7 @@ export default function ApplicationDetail() {
       *{box-sizing:border-box}
         .page { max-width: 960px; margin: 24px auto; padding: 0 12px; }
         .topbar { display:flex; justify-content:flex-start; margin-bottom:12px; }
-        .card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,.06); }
+        .card { background:#fff; border:1px solid #e5e7eb; border-radius:0px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,.06); }
         .card.err { border-color:#fecaca; }
         .header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
         .title { font-size:20px; font-weight:700; }
