@@ -64,7 +64,7 @@ export default function CreateCompany() {
     function clearLogo() {
         try {
             if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
-        } catch { }
+        } catch { throw new Error("Failed to revoke object URL"); }
         setSelectedFile(null);
         setPreviewUrl("");
         setField("logo_url", "");
