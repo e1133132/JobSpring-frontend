@@ -29,6 +29,8 @@ function buildTopMenus(role) {
   if (role === 2) { // admin
     return [
       { key: "jobs", label: "manage job position", to: "/admin/status" },
+      { key: "createHR", label: "create HR account", to: "/admin/create/hr" },
+      { key: "createCompany", label: "create Company", to: "/admin/create/company" },
       { key: "audit", label: "Audit review", to: "/admin/audit" },
       { key: "logout", label: "Logout", action: "logoutAdmin" },
     ];
@@ -53,6 +55,7 @@ function buildDropdown(role) {
     return [
       { key: "profile", label: "Profile", to: "/profile" },
       { key: "application", label: "Applications", to: "/hr/applications" },
+      { key: "job position", label: "Job position management", to: "/hr/JobPosition" },
       { key: "post-job", label: "Post job position", to: "/hr/post-job" },
     ];
   }
@@ -78,7 +81,7 @@ export default function Navigation({ role = "guest", username = "guest" }) {
     navigate("/auth/login")
   };
 
-    const ACTIONS = {
+  const ACTIONS = {
     logoutUser,
     logoutAdmin,
   };
