@@ -226,7 +226,7 @@ export default function CheckReview() {
                                         )}
                                         <button
                                             className="btnDetail"
-                                           onClick={() => navigate("/admin/audit/reviewDetail")}
+                                           onClick={() => navigate("/admin/audit/reviewDetail",{ state: { id: r.id } })}
                                         >
                                             Review Detail
                                         </button>
