@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import "../../App.css";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
@@ -15,6 +15,7 @@ export default function JobDetail() {
     const [showUpload, setShowUpload] = useState(false);
     const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
     const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -201,7 +202,17 @@ export default function JobDetail() {
                 <div style={{flex: "1 1 300px", minWidth: "260px"}}>
                     <article className="card" style={{padding: "20px"}}>
                         <h3 style={{marginBottom: "10px"}}>Company Info</h3>
-                        <p style={{fontWeight: 600}}>Name:{job.company}</p>
+                        <p style={{fontWeight: 600}}>
+                            Name:&nbsp;
+                            <span
+                                onClick={() => navigate(`/company/${job.companyId}`)}
+                                style={{
+                                    color: "#2563eb",
+                                    textDecoration: "underline",
+                                    cursor: "pointer",
+                                }}
+                            >{job.company}</span>
+                        </p>
                         <p className="muted">Location: {job.location}</p>
                     </article>
                 </div>
@@ -277,7 +288,7 @@ export default function JobDetail() {
       `}</style>
 
             <footer className="section"
-                    style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}>
+                    style={{paddingBottom: 40, textAlign: "center"}}>
                 <div className="muted">© {new Date().getFullYear()} MySite. All rights reserved.</div>
             </footer>
         </div>

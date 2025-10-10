@@ -13,6 +13,7 @@ import CheckReview from "./components/admin/checkReview.jsx";
 import CheckApplication from "./components/hr/checkApplication.jsx";
 import ReviewDetail from "./components/admin/reviewDetails.jsx";
 import ReviewUpload from "./components/job_seeker/reviewUpload.jsx";
+import CompanyDetail from "./components/job_seeker/companyDetail.jsx";
 import ApplicationDetail from "./components/hr/applicationDetails.jsx";
 
 function RoleDetect() {
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/admin/audit/reviewDetail" element={<ReviewDetail/>}/>
                 <Route path="/hr/applications" element={<CheckApplication/>}/>
                 <Route path="/hr/applications/applicationDetail" element={<ApplicationDetail/>}/>
+                <Route path="/company/:companyId" element={<CompanyDetail />} />
             </Routes>
         </Router>
     );

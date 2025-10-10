@@ -250,7 +250,7 @@ export default function ReviewUpload() {
 
             <footer
                 className="section"
-                style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}
+                style={{paddingBottom: 40, textAlign: "center"}}
             >
                 <div className="muted">
                     © {new Date().getFullYear()} MySite. All rights reserved.
