@@ -72,6 +72,4 @@ jobs:
         with:
          name: zap-scan          
          path: report_html.html
-               report_json.json
-               report_md.md
          retention-days: 14
