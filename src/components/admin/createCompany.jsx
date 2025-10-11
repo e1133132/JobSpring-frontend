@@ -7,7 +7,7 @@ import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 
 function isValidUrl(v) {
-    if (!v) return true; 
+    if (!v) return true;
     try {
         const u = new URL(v);
         return u.protocol === "http:" || u.protocol === "https:";
@@ -30,8 +30,8 @@ export default function CreateCompany() {
     const [submitting, setSubmitting] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
-    const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploading,] = useState(false);
+    const [, setUploadProgress] = useState(0);
 
 
     function setField(k, v) { setForm((s) => ({ ...s, [k]: v })); }
@@ -70,37 +70,9 @@ export default function CreateCompany() {
         setField("logo_url", "");
         setErrors((er) => ({ ...er, logo_url: undefined }));
 
-         if (fileRef.current) fileRef.current.value = "";
+        if (fileRef.current) fileRef.current.value = "";
     }
 
-    async function uploadLogo(e) {
-        e.preventDefault?.();
-        if (!selectedFile) {
-            setErrors((er) => ({ ...er, logo_url: "Please pick an image first." }));
-            return;
-        }
-        try {
-            setUploading(true);
-            const fd = new FormData();
-            fd.append("file", selectedFile); // 后端用 @RequestParam("file") 接收
-
-            const res = await api.post("/api/admin/upload", fd, {
-                headers: { "Content-Type": "multipart/form-data" },
-                onUploadProgress: (p) => {
-                    if (p.total) setUploadProgress(Math.round((p.loaded * 100) / p.total));
-                },
-            });
-
-            const url = res.data?.url;
-            if (!url) throw new Error("Upload ok but no URL returned.");
-            setField("logo_url", url);
-            Swal.fire({ icon: "success", title: "Logo uploaded", text: "URL saved to form." });
-        } catch (err) {
-            Swal.fire({ icon: "error", title: "Upload failed", text: err?.response?.data?.message || err.message });
-        } finally {
-            setUploading(false);
-        }
-    }
 
     function handleReset() {
         setForm({ name: "", website: "", logo_url: "", description: "" });
@@ -113,32 +85,40 @@ export default function CreateCompany() {
 
     async function handleSubmit(ev) {
         ev.preventDefault();
+
         const e = validate();
         setErrors(e);
         if (Object.keys(e).length) return;
-        ev.preventDefault();
-        if (selectedFile && !form.logo_url) {
-            setErrors((er) => ({ ...er, logo_url: "Please click Upload to get URL before creating." }));
-            return;
-        }
+
         try {
             setSubmitting(true);
-            const res = await api.post("/api/admin/company/create", {
+
+            const companyDto = {
                 name: form.name.trim(),
                 website: form.website?.trim() || null,
-                logoUrl: form.logo_url?.trim() || null,
                 description: form.description?.trim() || null,
-            });
+            };
+
+            const fd = new FormData();
+            fd.append("company", new Blob([JSON.stringify(companyDto)], { type: "application/json" }));
+            if (selectedFile) {
+                fd.append("logo", selectedFile, selectedFile.name);
+            }
+
+
+            const res = await api.post("/api/admin/company/create", fd,
+                {
+                    onUploadProgress: (p) => {
+                        if (p.total) setUploadProgress(Math.round((p.loaded * 100) / p.total));
+                    },
+                });
 
             await Swal.fire({
                 icon: "success",
                 title: "Company created",
                 text: `ID: ${res.data?.id ?? "(unknown)"}`,
-                confirmButtonText: "OK",
-                allowOutsideClick: false,
             });
-
-            navigate(-1); // 返回上一页；或改成 navigate(`/admin/companies/${res.data.id}`)
+            navigate(-1);
         } catch (err) {
             Swal.fire({
                 icon: "error",
@@ -149,6 +129,8 @@ export default function CreateCompany() {
             setSubmitting(false);
         }
     }
+
+
 
     return (
         <div className="app-root">
@@ -204,15 +186,6 @@ export default function CreateCompany() {
                                     className="file-input"
                                 />
 
-                                <button
-                                    type="button"
-                                    className="btn"
-                                    onClick={uploadLogo}
-                                    disabled={!selectedFile || uploading}
-                                    title="Upload image to get URL"
-                                >
-                                    {uploading ? `Uploading… ${uploadProgress}%` : "Upload"}
-                                </button>
                             </div>
 
 
@@ -302,17 +275,17 @@ export default function CreateCompany() {
         width:24px; height:24px; padding:0;
         border:none; border-radius:50%;
         background:#ef4444; color:#fff;
-        display:flex; align-items:center; justify-content:center;  /* 水平垂直都居中 */
-        font-size:16px; line-height:1;                              /* 行高不拉伸 */
+        display:flex; align-items:center; justify-content:center;  
+        font-size:16px; line-height:1;                              
         cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.15);
-        z-index:2;                                                  /* 在图片之上 */
+        z-index:2;                                               
         }
         .close-btn:hover{ filter:brightness(0.95); }
         .close-btn:disabled{ opacity:.6; cursor:not-allowed; }
 
         .logo-preview{ margin:10px 0 4px; }
         .logo-box{
-            position:relative;                /* 让 close-btn 以此为定位父级 */
+            position:relative;             
             width:220px; height:120px;
             border:1px solid #e5e7eb; border-radius:12px;
             overflow:hidden; background:#111827;

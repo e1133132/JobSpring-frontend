@@ -7,13 +7,10 @@ import Navigation from "../navigation.jsx";
 export default function AdminDashboard() {
   const [jobs, setJobs] = useState([]);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [filter, ] = useState("all");
   const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
   const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
   const [locking, setLocking] = useState(new Set());
-  const [type, ] = useState("all");
-  const [query, ] = useState("");
-  const [, sett] = useState("all");
 
   const isInvalid = (s) => s === 1 || s === "invalid";
   const statusLabel = (s) => (isInvalid(s) ? "inactive" : "active");
@@ -37,29 +34,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleSearch = async () => {
-    setQ(query.trim());
-    sett(type);
-    if (!query.trim()) {
-      fetchJobStatus();
-      return;
-    }
-    try {
-      const res = await api.post("/api/job_seeker/job_list/search", {
-        params: { keyword: query, page: 0, size: 50 },
-      });
-      let list = res.data.content ?? [];
-      if (type && type !== "all") {
-        list = list.filter((j) => {
-          const t = (j.employmentType ?? "").toLowerCase();
-          return t === type.toLowerCase();
-        });
-      }
-      setJobs(list);
-    } catch (e) {
-      console.error("Error searching jobs:", e);
-    } 
-  };
 
   const invalidJob = async (companyId, jobId) => {
     if (isInvalid(jobs.find(x => x.jobId === jobId)?.status)) return;
@@ -85,9 +59,10 @@ export default function AdminDashboard() {
       const text = `${j.title} ${j.company} ${j.status}`.toLowerCase();
       const passKw = text.includes(kw);
       const passStatus = filter === "all" ? true : j.status === filter;
+      console.log("status"+j.status );
       return passKw && passStatus;
     });
-  }, [jobs, q, filter]);
+  }, [jobs,q]);
 
 
   return (
@@ -98,23 +73,11 @@ export default function AdminDashboard() {
         <section className="toolbar" aria-label="Filters">
           <input
             className="input"
-            placeholder="Search title / company / status"
+            placeholder="input title / company / status to search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-          <select
-            className="select"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            aria-label="Status filter"
-          >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="invalid">Invalid</option>
-          </select>
-          <button className="btn" onClick={() => { handleSearch(); }}>
-            Search
-          </button>
+         
         </section>
 
           <main className="section" aria-label="Jobs list">

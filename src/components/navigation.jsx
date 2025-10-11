@@ -22,8 +22,8 @@ function buildTopMenus(role) {
   }
   if (role === 1) { // hr
     return [
-      { key: "home", label: "Home", to: "/home" },
-      { key: "logout", label: "logout", action: "logoutUser" },
+       { key: "job position", label: "Job position management", to: "/hr/JobPosition" },
+      { key: "logout", label: "logout", action: "logoutAdmin" },
     ];
   }
   if (role === 2) { // admin
@@ -55,7 +55,6 @@ function buildDropdown(role) {
     return [
       { key: "profile", label: "Profile", to: "/profile_hr" },
       { key: "application", label: "Applications", to: "/hr/applications" },
-      { key: "job position", label: "Job position management", to: "/hr/JobPosition" },
       { key: "post-job", label: "Post job position", to: "/hr/post-job" },
     ];
   }
