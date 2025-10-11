@@ -4,6 +4,17 @@
   "env": {
     "VITE_API_BASE_URL": "https://jobspring-api-1017446401249.asia-southeast1.run.app"
   },
+  "headers": [
+    {
+      "source": "/(robots\\.txt|sitemap\\.xml)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

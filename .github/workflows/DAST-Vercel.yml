@@ -56,14 +56,15 @@ jobs:
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
 
-      # 运行 ZAP Baseline 扫描预览站点
+
       - name: ZAP Baseline Scan
         id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}
-          cmd_options: -a
-          fail_action: false
+         target: ${{ steps.vercel.outputs.preview }}
+         fail_action: false
+         allow_issue_writing: false
+
 
 
       - name: Upload ZAP report
