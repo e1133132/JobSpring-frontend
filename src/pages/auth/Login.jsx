@@ -66,7 +66,7 @@ export default function Login() {
                     navigate("/home");
                     break;
                 case 1: // HR
-                    navigate("/home");
+                    navigate("/hr/JobPosition");
                     break;
                 case 2: // Admin
                     navigate("/admin/status");
