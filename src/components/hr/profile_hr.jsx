@@ -13,7 +13,7 @@ export default function ProfileHR() {
 
     useEffect(() => {
         const currentUser = getCurrentUser();
-        console.log("✅ currentUser:", currentUser);
+        console.log("currentUser:", currentUser);
 
         if (currentUser) {
             setUser({
@@ -132,7 +132,7 @@ export default function ProfileHR() {
                         type="button"
                         className="back-btn"
                         style={{ marginTop: "20px" }}
-                        onClick={() => navigate("/home")}
+                        onClick={() => navigate("/hr/JobPosition")}
                     >
                         Back
                     </button>

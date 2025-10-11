@@ -19,6 +19,7 @@ import ProfileHR from "./components/hr/profile_hr.jsx";
 import CreateHR from "./components/admin/createHR.jsx";
 import CreateCompany from "./components/admin/createCompany.jsx";
 import CheckCompanyJobPosition from "./components/hr/checkCompanyJobPosition.jsx";
+import UpdateJob from "./components/hr/updateJob.jsx";
 
 function RoleDetect() {
     const role = getCurrentUser()?.role;
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/hr/applications/applicationDetail" element={<ApplicationDetail />} />
                 <Route path="/company/:companyId" element={<CompanyDetail />} />
                 <Route path="/profile_hr" element={<ProfileHR />} />
+                <Route path="/hr/jobs-detail/:jobId" element={<UpdateJob />} />
             </Routes>
         </Router>
     );

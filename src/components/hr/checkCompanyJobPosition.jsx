@@ -12,11 +12,8 @@ function formatDate(v) {
 }
 
 function normalizePosition(p = {}) {
-  const raw = (p.status ?? p.state ?? p.enabled ?? p.valid)?.toString().toLowerCase();
-  let status;
-  if (raw === "true" || raw === "0" || raw === "valid" || raw === "open" || raw === "enabled") status = "valid";
-  else if (raw === "false" || raw === "1" || raw === "invalid" || raw === "closed" || raw === "disabled") status = "invalid";
-  else status = "invalid";
+  const statusNum = Number(p.status ?? p.state ?? 0);
+  const status = statusNum === 0 ? "valid" : "invalid";
 
   return {
     id: p.id ?? p.positionId ?? p.pid,
@@ -24,9 +21,9 @@ function normalizePosition(p = {}) {
     company: p.companyName ?? p.company ?? "",
     location: p.location ?? p.city ?? "",
     type: p.type ?? p.employmentType ?? "",
+    statusNum,
     status, 
-    createdAt: p.createdAt ?? p.created_at,
-    updatedAt: p.updatedAt ?? p.updated_at,
+    postedAt: p.postedAt ?? p.posted_at,
   };
 }
 
@@ -105,17 +102,22 @@ export default function CheckCompanyJobPosition() {
                   <div className="row"><span className="label">ID:</span><span className="val">{p.id}</span></div>
                   {p.location && <div className="row"><span className="label">Location:</span><span className="val">{p.location}</span></div>}
                   {p.type && <div className="row"><span className="label">Type:</span><span className="val">{p.type}</span></div>}
-                  <div className="row"><span className="label">Created:</span><span className="val">{formatDate(p.createdAt)}</span></div>
-                  <div className="row"><span className="label">Updated:</span><span className="val">{formatDate(p.updatedAt)}</span></div>
+                  <div className="row"><span className="label">Created:</span><span className="val">{formatDate(p.postedAt)}</span></div>
                 </div>
                 <div className="pc-right">
+                  {p.statusNum === 0 ? (
                   <button
                     className="btn primary"
-                    onClick={() => navigate(`/hr/positions/${p.id}`, { state: { id: p.id } })}
+                    onClick={() => navigate(`/hr/jobs-detail/${p.id}`, { state: { id: p.id } })}
                     title="Update this position"
                   >
                     Update
                   </button>
+                  ) : (
+                      <button className="btn disabled" disabled title="This position is closed">
+                        Closed
+                      </button>
+                  )}
                 </div>
               </article>
             );
