@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import Home from "./components/job_seeker/home";
 import Profile from "./components/job_seeker/profile";
 import React from "react";
@@ -7,7 +7,7 @@ import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 import JobDetail from "./components/job_seeker/jobDetail.jsx";
 import Apply_progress from "./components/job_seeker/apply_progress.jsx";
-import { getCurrentUser } from "./services/authService";
+import {getCurrentUser} from "./services/authService";
 import PostJob from "./components/hr/PostJob.jsx";
 import CheckReview from "./components/admin/checkReview.jsx";
 import CheckApplication from "./components/hr/checkApplication.jsx";
@@ -15,6 +15,7 @@ import ReviewDetail from "./components/admin/reviewDetails.jsx";
 import ReviewUpload from "./components/job_seeker/reviewUpload.jsx";
 import CompanyDetail from "./components/job_seeker/companyDetail.jsx";
 import ApplicationDetail from "./components/hr/applicationDetails.jsx";
+import ProfileHR from "./components/hr/profile_hr.jsx";
 import CreateHR from "./components/admin/createHR.jsx";
 import CreateCompany from "./components/admin/createCompany.jsx";
 import CheckCompanyJobPosition from "./components/hr/checkCompanyJobPosition.jsx";
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/hr/JobPosition" element={<CheckCompanyJobPosition />} />
                 <Route path="/hr/applications/applicationDetail" element={<ApplicationDetail />} />
                 <Route path="/company/:companyId" element={<CompanyDetail />} />
+                <Route path="/profile_hr" element={<ProfileHR />} />
             </Routes>
         </Router>
     );
