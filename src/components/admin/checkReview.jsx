@@ -129,7 +129,7 @@ export default function CheckReview() {
                 <section className="toolbar" aria-label="Filters">
                     <input
                         className="input"
-                        placeholder="Search title / content / id / applicationId / rating"
+                        placeholder="input title / content / id / applicationId / rating to search"
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
                     />
