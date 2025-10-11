@@ -56,20 +56,11 @@ jobs:
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
 
-      - name: Make safe artifact name
-        id: art
-        shell: bash
-        run: |
-          RAW="zap-scan-${GITHUB_RUN_ID}-${GITHUB_JOB}-${GITHUB_RUN_ATTEMPT}"
-          SAFE=$(echo "$RAW" | tr -d '\r\n' | tr -cd '[:alnum:]._-')
-          echo "name=$SAFE" >> "$GITHUB_OUTPUT"
-
-      - name: Upload ZAP report
-        uses: actions/upload-artifact@v4
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.13.0
         with:
-          name: ${{ steps.art.outputs.name }}
-          path: |
-            report_html.html
-            report_json.json
-            report_md.md
-          if-no-files-found: error
+          target: ${{ steps.vercel.outputs.preview }}
+          cmd_options: -a
+          allow_issue_writing: false
+          artifact_name: zap-scan-${{ github.run_id }}-${{ github.job }}  
+
