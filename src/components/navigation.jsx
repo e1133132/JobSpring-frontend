@@ -53,7 +53,7 @@ function buildDropdown(role) {
   }
   if (role === 1) {
     return [
-      { key: "profile", label: "Profile", to: "/profile" },
+      { key: "profile", label: "Profile", to: "/profile_hr" },
       { key: "application", label: "Applications", to: "/hr/applications" },
       { key: "job position", label: "Job position management", to: "/hr/JobPosition" },
       { key: "post-job", label: "Post job position", to: "/hr/post-job" },
@@ -73,7 +73,7 @@ export default function Navigation({ role = "guest", username = "guest" }) {
 
   const logoutUser = async () => {
     logout();
-    window.location.reload();
+    navigate("/auth/login")
   };
 
   const logoutAdmin = async () => {
