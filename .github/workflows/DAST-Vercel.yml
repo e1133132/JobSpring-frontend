@@ -7,46 +7,83 @@ on:
 
 permissions:
   contents: read
-  actions: write   # 允许创建 artifact 容器（同仓 PR 必要）
+  actions: write  # ← allow creating artifact containers
 
 jobs:
   zap-baseline:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # ... 省略：你的 Get Vercel Preview URL 步骤 ...
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-      # ★ 关键：显式把 artifact_name 设为空字符串 => 完全禁用 ZAP 内置上传
+      - name: Get Vercel Preview URL (commit → PR → latest)
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT: ${{ secrets.VERCEL_PROJECT }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEAM_ARG=""
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then TEAM_ARG="&teamId=$VERCEL_TEAM_ID"; fi
+          JSON=$(curl -fsSL -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/deployments?app=$VERCEL_PROJECT&target=preview&limit=100$TEAM_ARG")
+          URL=$(echo "$JSON" | jq -r --arg SHA "$HEAD_SHA" \
+            '.deployments[] | select(.meta.githubCommitSha == $SHA) | .url' | head -n1)
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
+            URL=$(echo "$JSON" | jq -r --argjson PR "$PR_NUMBER" \
+              '.deployments[] | select(.meta.githubPrId == $PR) | .url' | head -n1)
+          fi
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
+            URL=$(echo "$JSON" | jq -r '.deployments | sort_by(.createdAt // .created) | reverse | .[0].url')
+          fi
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
+            echo "cannot find Preview URL"; exit 1
+          fi
+          echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
+          echo "✅ Found preview: https://$URL"
+
       - name: ZAP Baseline Scan (no built-in artifact upload)
-        id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}/healthz   # 请确保这个是公开 200
-          cmd_options: -a
-          allow_issue_writing: false
+          target: ${{ env.TARGET }}         # ← now a full https://... URL
+          cmd_options: >-
+            -a -d --autooff -T 10 -m 2
+            -r report_html.html -w report_md.md -J report_json.json -x report_xml.xml
+            -i -s
           rules_file_name: .zap/rules.tsv
-          artifact_name: ""   # <= 关闭内置上传，避免“Artifact name is valid!”那条
+          artifact_name: ""                 # disable built-in upload
 
       - name: List ZAP outputs
         run: ls -lah && echo && ls -lah report* || true
 
-      # 仅同仓 PR 才手动上传；fork PR 跳过（很多组织策略下 fork 无法创建 artifact）
+      # Upload artifacts only when PR is from the same repo (not a fork)
       - name: Upload ZAP reports (manual)
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/upload-artifact@v4
         with:
-          name: zap-${{ github.run_id }}-${{ github.job }}-${{ github.run_attempt }}
+          name: zap-${{ github.run_id }}-${{ github.job }}-${{ github.run_attempt }}  # unique, simple
           path: |
             **/report_html.html
             **/report_json.json
             **/report_md.md
           if-no-files-found: error
 
-      # 无论是否上传，都在 Summary 内联一张图，保证可见性
-      - name: Inline screenshot in Summary
+      # Always inline a screenshot in Summary so you can see results even on forks
+      - name: Install wkhtmltoimage
         run: |
-          sudo apt-get update && sudo apt-get install -y wkhtmltopdf
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
+      - name: Show report screenshot in Summary
+        shell: bash
+        run: |
           FILE=$(ls -1 **/report_html.html 2>/dev/null | head -n1 || true)
           if [ -n "$FILE" ]; then
             wkhtmltoimage --width 1200 "$FILE" zap-summary.png
@@ -55,7 +92,7 @@ jobs:
               echo "## DAST / ZAP Summary"
               echo "**Target:** ${{ steps.vercel.outputs.preview }}"
               echo "<details><summary>Report screenshot</summary>"
-              echo "<img src='data:image/png;base64,${B64}' alt='ZAP'/>"
+              echo "<img src='data:image/png;base64,${B64}' alt='ZAP Summary'/>"
               echo "</details>"
               if [ "${{ github.event.pull_request.head.repo.full_name == github.repository }}" = "true" ]; then
                 echo "Full HTML/JSON/MD report: see **Artifacts** on the right."
