@@ -57,6 +57,7 @@ jobs:
           cmd_options: -a
           allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
+          artifact_name: zap
           # IMPORTANT: do NOT set artifact_name here (we upload manually below)
 
       - name: List ZAP outputs
