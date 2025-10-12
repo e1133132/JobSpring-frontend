@@ -33,11 +33,10 @@ export default function CreateHR() {
     const [error, setError] = useState("");
 
 
-    const [companies, setCompanies] = useState([]);            // ['LHT','ACME',...]
+    const [companies, setCompanies] = useState([]);           
     const [companiesLoading, setCompaniesLoading] = useState(false);
-    const [pickerOpenFor, setPickerOpenFor] = useState(null);  // 当前展开下拉的 userId
-    const [selectedCompany, setSelectedCompany] = useState({}); // { [userId]: 'LHT' }
-
+    const [pickerOpenFor, setPickerOpenFor] = useState(null);  
+    const [selectedCompany, setSelectedCompany] = useState({}); 
 
     async function handleSearch(ev) {
         ev?.preventDefault?.();
@@ -64,11 +63,17 @@ export default function CreateHR() {
         setCompaniesLoading(true);
         try {
             const res = await api.get("/api/admin/company/list");
-            console.log("Fetched companies:", res.data.content);
-            const names = Array.isArray(res.data.content)
-                ? res.data.content.map((x) => (typeof x === "string" ? x : x?.name)).filter(Boolean)
-                : [];
-            setCompanies(names);
+            const raw = Array.isArray(res.data?.content) ? res.data.content : [];
+
+            const items = raw
+                .map(x => {
+                    const id = x?.id;
+                    const name = x?.name ?? x?.companyName ?? x?.label;
+                    if (id == null || !name) return null;
+                    return { id, name };
+                })
+                .filter(Boolean);
+            setCompanies(items);
         } catch (e) {
             Swal.fire({ icon: "error", title: "Load companies failed", text: e?.message || "Error" });
         } finally {
@@ -76,13 +81,10 @@ export default function CreateHR() {
         }
     }
 
+
     function togglePicker(userId) {
         loadCompaniesOnce();
         setPickerOpenFor((cur) => (cur === userId ? null : userId));
-    }
-
-    function onPickCompany(userId, name) {
-        setSelectedCompany((s) => ({ ...s, [userId]: name }));
     }
 
     async function makeHR(userId) {
@@ -92,7 +94,7 @@ export default function CreateHR() {
             return;
         }
         try {
-            await api.patch(`/api/admin/${userId}/make-hr`, { companyName: picked });
+            await api.patch(`/api/admin/${userId}/make-hr`, { companyId: picked });
             setList((prev) => prev.map((u) => (u.id === userId ? { ...u, role: "hr" } : u)));
             Swal.fire({ icon: "success", title: "Succeeded", text: `User ${userId} is now HR of ${picked}.` });
         } catch (e) {
@@ -176,7 +178,7 @@ export default function CreateHR() {
                                         <div className="line">
                                             <span className="label">Role:</span>
                                             <span className={`pill ${isHR(u.role) ? "hr" : "other"}`}>
-                                                {isHR(u.role) ? "HR" : String(u.role ===0?"job seeker":"admin")}
+                                                {isHR(u.role) ? "HR" : String(u.role === 0 ? "job seeker" : "admin")}
                                             </span>
                                         </div>
                                         {picked && (
@@ -189,7 +191,7 @@ export default function CreateHR() {
 
                                     <div className="uc-right">
                                         <div className="btn-col">
-                                           {u.role==0&& <button
+                                            {u.role == 0 && <button
                                                 type="button"
                                                 className="btn"
                                                 onClick={() => togglePicker(u.id)}
@@ -201,20 +203,23 @@ export default function CreateHR() {
 
                                             {open && (
                                                 <select
-                                                    className="select"
-                                                    value={picked || ""}
-                                                    onChange={(e) => onPickCompany(u.id, e.target.value)}
+                                                    value={selectedCompany[u.id] ?? ""}
+                                                    onChange={(e) =>
+                                                        setSelectedCompany((s) => ({
+                                                            ...s,
+                                                            [u.id]: e.target.value ? Number(e.target.value) : null,
+                                                        }))
+                                                    }
                                                 >
-                                                    <option value="" disabled>
-                                                        {companiesLoading ? "Loading..." : "Select company"}
-                                                    </option>
-                                                    {companies.map((name) => (
-                                                        <option key={name} value={name}>{name}</option>
+                                                    {companies.map((c) => (
+                                                        <option key={c.id} value={c.id}>
+                                                            {c.name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             )}
 
-                                            {u.role!=2&&<button
+                                            {u.role != 2 && <button
                                                 type="button"
                                                 className="btn success"
                                                 disabled={isHR(u.role)}
