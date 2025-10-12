@@ -64,10 +64,11 @@ jobs:
         id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}/healthz  
+          target: ${{ steps.vercel.outputs.preview }}/healthz
           cmd_options: -a
           allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
+          artifact_name: zap 
 
       - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
