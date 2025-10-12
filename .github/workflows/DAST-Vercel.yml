@@ -69,12 +69,12 @@ jobs:
           allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload ZAP reports
+        uses: actions/upload-artifact@v4
         with:
-          name: zap       
+          name: zap
           path: |
             **/report_html.html
             **/report_json.json
             **/report_md.md
           if-no-files-found: error
-
