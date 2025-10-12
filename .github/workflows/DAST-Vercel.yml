@@ -64,17 +64,17 @@ jobs:
         id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}/healthz   # 建一个公开200的入口
+          target: ${{ steps.vercel.outputs.preview }}/healthz  
           cmd_options: -a
           allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
 
-      - name: Upload ZAP reports
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: zap
+          name: zap       
           path: |
             **/report_html.html
             **/report_json.json
             **/report_md.md
           if-no-files-found: error
+
