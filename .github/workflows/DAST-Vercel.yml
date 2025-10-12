@@ -5,9 +5,9 @@ on:
     branches:
       - '**'
 
-# 最小权限即可；如需自动创建 Issue 再加 issues: write
 permissions:
   contents: read
+  actions: write  # ← allow creating artifact containers
 
 jobs:
   zap-baseline:
@@ -19,7 +19,6 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # 通过 Vercel API 找到当前 PR 对应的 Preview URL
       - name: Get Vercel Preview URL (commit → PR → latest)
         id: vercel
         env:
@@ -33,30 +32,20 @@ jobs:
           set -euo pipefail
           TEAM_ARG=""
           if [ -n "${VERCEL_TEAM_ID:-}" ]; then TEAM_ARG="&teamId=$VERCEL_TEAM_ID"; fi
-
           JSON=$(curl -fsSL -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v6/deployments?app=$VERCEL_PROJECT&target=preview&limit=100$TEAM_ARG")
-
-          echo "—— latest five ——"
-          echo "$JSON" | jq -r '.deployments[0:5][] | {url,state,target,meta:{githubCommitSha,githubPrId}}'
-
           URL=$(echo "$JSON" | jq -r --arg SHA "$HEAD_SHA" \
             '.deployments[] | select(.meta.githubCommitSha == $SHA) | .url' | head -n1)
-
           if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
             URL=$(echo "$JSON" | jq -r --argjson PR "$PR_NUMBER" \
               '.deployments[] | select(.meta.githubPrId == $PR) | .url' | head -n1)
           fi
-
           if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
             URL=$(echo "$JSON" | jq -r '.deployments | sort_by(.createdAt // .created) | reverse | .[0].url')
           fi
-
           if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
-            echo "cannot find Preview URL"
-            exit 1
+            echo "cannot find Preview URL"; exit 1
           fi
-
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
 
@@ -64,18 +53,52 @@ jobs:
         id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}/healthz
+          target: ${{ steps.vercel.outputs.preview }}/healthz  # ensure this is 200 public
           cmd_options: -a
           allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
-          artifact_name: zap 
+          # IMPORTANT: do NOT set artifact_name here (we upload manually below)
 
-      - name: Upload ZAP reports
+      - name: List ZAP outputs
+        run: ls -lah && echo && ls -lah report* || true
+
+      # Upload artifacts only when PR is from the same repo (not a fork)
+      - name: Upload ZAP reports (manual)
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/upload-artifact@v4
         with:
-          name: zap
+          name: zap-${{ github.run_id }}-${{ github.job }}-${{ github.run_attempt }}  # unique, simple
           path: |
             **/report_html.html
             **/report_json.json
             **/report_md.md
           if-no-files-found: error
+
+      # Always inline a screenshot in Summary so you can see results even on forks
+      - name: Install wkhtmltoimage
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
+      - name: Show report screenshot in Summary
+        shell: bash
+        run: |
+          FILE=$(ls -1 **/report_html.html 2>/dev/null | head -n1 || true)
+          if [ -n "$FILE" ]; then
+            wkhtmltoimage --width 1200 "$FILE" zap-summary.png
+            B64=$(base64 -w0 zap-summary.png)
+            {
+              echo "## DAST / ZAP Summary"
+              echo "**Target:** ${{ steps.vercel.outputs.preview }}"
+              echo "<details><summary>Report screenshot</summary>"
+              echo "<img src='data:image/png;base64,${B64}' alt='ZAP Summary'/>"
+              echo "</details>"
+              if [ "${{ github.event.pull_request.head.repo.full_name == github.repository }}" = "true" ]; then
+                echo "Full HTML/JSON/MD report: see **Artifacts** on the right."
+              else
+                echo "_Fork PR: artifact upload skipped by policy; screenshot shown above._"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report_html.html found" >> "$GITHUB_STEP_SUMMARY"
+          fi
