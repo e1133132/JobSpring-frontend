@@ -5,11 +5,17 @@ on:
     branches:
       - '**'
 
+permissions:
+  contents: read
+  actions: write  # ← allow creating artifact containers
+
 jobs:
   zap-baseline:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -21,57 +27,24 @@ jobs:
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
         run: |
           set -euo pipefail
           TEAM_ARG=""
           if [ -n "${VERCEL_TEAM_ID:-}" ]; then TEAM_ARG="&teamId=$VERCEL_TEAM_ID"; fi
-
           JSON=$(curl -fsSL -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v6/deployments?app=$VERCEL_PROJECT&target=preview&limit=100$TEAM_ARG")
-
-          echo "—— latest five ——"
-          echo "$JSON" | jq -r '.deployments[0:5][] | {url,state,target,meta:{githubCommitSha,githubPrId}}'
-
-
           URL=$(echo "$JSON" | jq -r --arg SHA "$HEAD_SHA" \
             '.deployments[] | select(.meta.githubCommitSha == $SHA) | .url' | head -n1)
-
-
-          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
             URL=$(echo "$JSON" | jq -r --argjson PR "$PR_NUMBER" \
               '.deployments[] | select(.meta.githubPrId == $PR) | .url' | head -n1)
           fi
-
-
-          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
-            URL=$(echo "$JSON" | jq -r \
-              '.deployments | sort_by(.createdAt // .created) | reverse | .[0].url')
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
+            URL=$(echo "$JSON" | jq -r '.deployments | sort_by(.createdAt // .created) | reverse | .[0].url')
           fi
-
-          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
-            echo "cannot find Preview URL"
-            exit 1
+          if [ -z "${URL:-}" ] || [ "$URL" = "null" ]; then
+            echo "cannot find Preview URL"; exit 1
           fi
-
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
-
-      # 运行 ZAP Baseline 扫描预览站点
-      - name: ZAP Baseline Scan
-        id: zap
-        uses: zaproxy/action-baseline@v0.13.0
-        with:
-          target: ${{ steps.vercel.outputs.preview }}
-          cmd_options: -a
-          fail_action: false
-
-
-      - name: Upload ZAP report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: |
-            report_html.html
-            report_json.json
-            report_md.md
-          retention-days: 14

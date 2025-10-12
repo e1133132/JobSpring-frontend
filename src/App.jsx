@@ -24,7 +24,15 @@ import UpdateJob from "./components/hr/updateJob.jsx";
 function RoleDetect() {
     const role = getCurrentUser()?.role;
     console.log(role);
-    return role === 2 ? "/admin/status" : "/home";
+    switch (role) {
+    case 2:
+      return "/admin/status";
+    case 1:
+      return "/hr/JobPosition";                 
+    case 0:
+    default:
+      return "/home";
+  }
 }
 
 function App() {
