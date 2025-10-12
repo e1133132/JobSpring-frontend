@@ -60,22 +60,15 @@ jobs:
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
 
-      # 运行 ZAP Baseline（匿名）, 使用忽略规则文件压低噪音
       - name: ZAP Baseline Scan
         id: zap
         uses: zaproxy/action-baseline@v0.13.0
         with:
-          target: ${{ steps.vercel.outputs.preview }}
-          cmd_options: -a               # 自动化模式，多做一些检查
-          allow_issue_writing: false    # 不自动创建 Issue（避免 403）
+          target: ${{ steps.vercel.outputs.preview }}/healthz   # 建一个公开200的入口
+          cmd_options: -a
+          allow_issue_writing: false
           rules_file_name: .zap/rules.tsv
-          # 不使用 artifact_name，改为手动上传，避免 400
 
-      # 看看报告生成在哪（调试用）
-      - name: List ZAP outputs
-        run: ls -lah && echo && ls -lah report* || true
-
-    
       - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
         with:
@@ -85,30 +78,3 @@ jobs:
             **/report_json.json
             **/report_md.md
           if-no-files-found: error
-
-
-      - name: Install wkhtmltoimage
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wkhtmltopdf   # 包含 wkhtmltoimage
-
-      - name: Show report screenshot in Summary
-        shell: bash
-        run: |
-          # 选工作区里的第一个 report_html.html 渲染为 PNG
-          FILE=$(ls -1 **/report_html.html 2>/dev/null | head -n1)
-          if [ -n "$FILE" ]; then
-            wkhtmltoimage --width 1200 "$FILE" zap-summary.png
-            B64=$(base64 -w0 zap-summary.png)
-            {
-              echo "## DAST / ZAP Summary"
-              echo "**Target:** ${{ steps.vercel.outputs.preview }}"
-              echo "<details><summary>点击展开：报告截图</summary>"
-              echo "<img src='data:image/png;base64,${B64}' alt='ZAP Summary'/>"
-              echo "</details>"
-              echo ""
-              echo "完整报告：在本页右侧 **Artifacts → zap** 下载。"
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "No report_html.html found to render" >> "$GITHUB_STEP_SUMMARY"
-          fi
