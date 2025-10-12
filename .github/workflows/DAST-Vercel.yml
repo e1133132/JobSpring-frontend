@@ -49,16 +49,6 @@ jobs:
           echo "preview=https://$URL" >> "$GITHUB_OUTPUT"
           echo "✅ Found preview: https://$URL"
 
-      - name: ZAP Baseline Scan (no built-in artifact upload)
-        uses: zaproxy/action-baseline@v0.13.0
-        with:
-          target: ${{ env.TARGET }}         # ← now a full https://... URL
-          cmd_options: >-
-            -a -d --autooff -T 10 -m 2
-            -r report_html.html -w report_md.md -J report_json.json -x report_xml.xml
-            -i -s
-          rules_file_name: .zap/rules.tsv
-          artifact_name: ""                 # disable built-in upload
 
       - name: List ZAP outputs
         run: ls -lah && echo && ls -lah report* || true
