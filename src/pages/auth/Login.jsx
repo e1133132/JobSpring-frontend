@@ -190,6 +190,10 @@ export default function Login() {
 
                 <button
                     onClick={() => navigate("/auth/register")}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        navigate("/auth/register");
+                    }}
                     style={{
                         marginTop: "1rem",
                         width: "100%",
