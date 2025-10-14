@@ -9,8 +9,8 @@ import { getCurrentUser } from "../../services/authService";
 
 const STATUS_MAP = {
     0: { label: "Pending", className: "chip chip-pending" },
-    1: { label: "Approved", className: "chip chip-approved" },
-    2: { label: "Rejected", className: "chip chip-rejected" },
+    2: { label: "Approved", className: "chip chip-approved" },
+    3: { label: "Rejected", className: "chip chip-rejected" },
 };
 
 function formatDate(iso) {
@@ -37,7 +37,7 @@ function base64ToBlob(b64, mime = "application/octet-stream") {
     const raw = stripBase64Prefix(b64);
     const byteChars = atob(raw);
     const len = byteChars.length;
-    const chunk = 1024 * 1024; 
+    const chunk = 1024 * 1024;
     const chunks = [];
     for (let i = 0; i < len; i += chunk) {
         const end = Math.min(i + chunk, len);
@@ -146,9 +146,9 @@ export default function ApplicationDetail() {
 
     async function handleUpdateStatus(status) {
         try {
-            await api.patch(`/api/hr/applications/${id}/status`, {status});
-            const word=status===2?'passed':'rejected';
-            Swal.fire('Success', 'Application status '+word, 'success');
+            await api.patch(`/api/hr/applications/${id}/status`, { status });
+            const word = status === 2 ? 'passed' : 'rejected';
+            Swal.fire('Success', 'Application status ' + word, 'success');
         } catch (error) {
             console.error("/api/hr/applications:", error.response ?? error);
         }
@@ -164,7 +164,7 @@ export default function ApplicationDetail() {
                 </button>
             </div>
 
-            <div className="card" style={{ margin: "12px 24px"}}>
+            <div className="card" style={{ margin: "12px 24px" }}>
                 <header className="header">
                     <div>
                         <div className="title">Application #{data.id}</div>
