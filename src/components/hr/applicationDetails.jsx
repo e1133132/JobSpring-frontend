@@ -102,21 +102,17 @@ export default function ApplicationDetail() {
         let toRevoke = "";
         if (!rawFile) { setPreviewUrl(""); return; }
 
-        if (fileKind === "pdf") {
-            if (rawFile.startsWith("data:")) {
-                setPreviewUrl(rawFile);
-            } else if (isPdfBase64(rawFile)) {
-                const blob = base64ToBlob(rawFile, "application/pdf");
-                const url = URL.createObjectURL(blob);
-                setPreviewUrl(url);
-                toRevoke = url;
-            } else if (/^https?:\/\//i.test(rawFile)) {
-                setPreviewUrl(buildFileUrl(rawFile));
-            } else {
-                setPreviewUrl(toPdfDataUrl(rawFile));
-            }
-        } else {
+        if (rawFile.startsWith("data:")) {
+            setPreviewUrl(rawFile);
+        } else if (isPdfBase64(rawFile)) {
+            const blob = base64ToBlob(rawFile, "application/pdf");
+            const url = URL.createObjectURL(blob);
+            setPreviewUrl(url);
+            toRevoke = url;
+        } else if (/^https?:\/\//i.test(rawFile)) {
             setPreviewUrl(buildFileUrl(rawFile));
+        } else {
+            setPreviewUrl(toPdfDataUrl(rawFile));
         }
 
         return () => {
