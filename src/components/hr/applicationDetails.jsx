@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navigation from "../navigation.jsx";
 import { FaArrowLeft } from "react-icons/fa";
@@ -98,27 +98,49 @@ export default function ApplicationDetail() {
 
     const rawFile = data?.resumeUrl;
 
+    const fileKind = useMemo(() => {
+        if (!rawFile) return "none";
+        if (rawFile.startsWith("data:")) {
+            return rawFile.includes("application/pdf") ? "pdf" : "other";
+        }
+        if (isPdfBase64(rawFile)) return "pdf";
+
+        const lower = rawFile.split("?")[0].toLowerCase();
+        if (lower.startsWith("http")) {
+            if (lower.endsWith(".pdf")) return "pdf";
+            if (/\.(png|jpe?g|gif|webp|bmp|svg)$/.test(lower)) return "image";
+            return "other";
+        }
+        return "other";
+    }, [rawFile]);
+
+
+
     useEffect(() => {
         let toRevoke = "";
         if (!rawFile) { setPreviewUrl(""); return; }
 
-        if (rawFile.startsWith("data:")) {
-            setPreviewUrl(rawFile);
-        } else if (isPdfBase64(rawFile)) {
-            const blob = base64ToBlob(rawFile, "application/pdf");
-            const url = URL.createObjectURL(blob);
-            setPreviewUrl(url);
-            toRevoke = url;
-        } else if (/^https?:\/\//i.test(rawFile)) {
-            setPreviewUrl(buildFileUrl(rawFile));
+        if (fileKind === "pdf") {
+            if (rawFile.startsWith("data:")) {
+                setPreviewUrl(rawFile);
+            } else if (isPdfBase64(rawFile)) {
+                const blob = base64ToBlob(rawFile, "application/pdf");
+                const url = URL.createObjectURL(blob);
+                setPreviewUrl(url);
+                toRevoke = url;
+            } else if (/^https?:\/\//i.test(rawFile)) {
+                setPreviewUrl(buildFileUrl(rawFile));
+            } else {
+                setPreviewUrl(toPdfDataUrl(rawFile));
+            }
         } else {
-            setPreviewUrl(toPdfDataUrl(rawFile));
+            setPreviewUrl(buildFileUrl(rawFile));
         }
 
         return () => {
             if (toRevoke) URL.revokeObjectURL(toRevoke);
         };
-    }, [rawFile]);
+    }, [rawFile, fileKind]);
 
     const statusInfo = STATUS_MAP[data?.status ?? 0] ?? STATUS_MAP[0];
 
@@ -136,9 +158,9 @@ export default function ApplicationDetail() {
         <div className="app-root">
             <Navigation role={role} username={name} />
             <div className="topbar" style={{ marginLeft: "24px" }}>
-                <button className="btn ghost flex items-center gap-2" onClick={() => navigate('/hr/applications', { replace: true })}>
+                <button className="btn ghost flex items-center gap-2" onClick={() => navigate(-1)}>
                     <FaArrowLeft className="icon" aria-hidden="true" />
-                    <span>Back</span>
+                    <span >Back</span>
                 </button>
             </div>
 
@@ -173,14 +195,32 @@ export default function ApplicationDetail() {
 
 
                     <div className="preview-pane" aria-label="Resume preview">
-                        {previewUrl ? (
+                        {!previewUrl && (
+                            <div className="muted">No Document{data.resumeProfile ? "text abstract:" : ""}</div>
+                        )}
+
+                        {previewUrl && fileKind === "pdf" && (
                             <iframe
                                 title="resume-pdf"
                                 src={`${previewUrl}#toolbar=1&navpanes=0`}
                                 style={{ width: "100%", height: "100%", border: 0 }}
                             />
-                        ) : (
-                            <div className="muted">No Document</div>
+                        )}
+
+                        {previewUrl && fileKind === "image" && (
+                            <div className="img-box">
+                                <img src={previewUrl} alt="Resume Image" />
+                            </div>
+                        )}
+
+                        {previewUrl && fileKind === "other" && (
+                            <div className="muted">
+                                This type of file cannot be previewed within the current window. Please use &quot;Open in New Window&quot; or &quot;Download Attachment&quot; to view it.
+                            </div>
+                        )}
+
+                        {!previewUrl && data.resumeProfile && (
+                            <pre className="text-preview">{data.resumeProfile}</pre>
                         )}
                     </div>
                 </section>
