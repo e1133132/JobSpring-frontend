@@ -114,7 +114,6 @@ test("toggles favorite status correctly", async () => {
     await waitFor(() =>
         expect(global.alert).toHaveBeenCalledWith("Saved: Backend Developer")
     );
-
     await userEvent.click(favBtn);
     await waitFor(() =>
         expect(global.alert).toHaveBeenCalledWith("Removed from favorites: Backend Developer")
