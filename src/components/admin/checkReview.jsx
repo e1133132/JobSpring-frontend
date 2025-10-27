@@ -121,7 +121,6 @@ export default function CheckReview() {
     }
 
     return (
-
         <div className="app-root">
             <Navigation role={role} username={name} />
 
