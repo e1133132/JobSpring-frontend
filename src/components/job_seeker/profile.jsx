@@ -23,18 +23,17 @@ export default function Profile() {
     });
     const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
     const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
-    // 日期单独 state（存储为 Date 对象）
+
     const [startDateSchool, setStartDateSchool] = useState(null);
     const [endDateSchool, setEndDateSchool] = useState(null);
     const [startDateWork, setStartDateWork] = useState(null);
     const [endDateWork, setEndDateWork] = useState(null);
-    // select 单独 state
+
     const [visibility, setVisibility] = useState("2");
     const [level, setLevel] = useState("3");
     const [skillsList, setSkillsList] = useState([]);
     const navigate = useNavigate();
 
-    // 初始化时请求后端数据
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -48,7 +47,6 @@ export default function Profile() {
 
                 const data = response.data;
 
-                // 填充表单数据
                 setForm({
                     summary: data.profile?.summary ?? "",
                     school: data.education?.[0]?.school ?? "",
@@ -63,13 +61,11 @@ export default function Profile() {
                     skillYears: data.skills?.[0]?.years?.toString() ?? "",
                 });
 
-                // 日期转为 Date 对象
                 setStartDateSchool(data.education?.[0]?.start_date ? new Date(data.education[0].start_date) : null);
                 setEndDateSchool(data.education?.[0]?.end_date ? new Date(data.education[0].end_date) : null);
                 setStartDateWork(data.experience?.[0]?.start_date ? new Date(data.experience[0].start_date) : null);
                 setEndDateWork(data.experience?.[0]?.end_date ? new Date(data.experience[0].end_date) : null);
 
-                // 下拉选择框
                 setVisibility(data.profile?.visibility?.toString() || "2");
                 setLevel(data.skills?.[0]?.level?.toString() || "3");
             } catch (error) {
@@ -79,7 +75,6 @@ export default function Profile() {
 
         fetchProfile();
     }, []);
-
 
     useEffect(() => {
         const fetchSkills = async () => {
@@ -121,7 +116,6 @@ export default function Profile() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 构造请求体
         const payload = {
             profile: {
                 summary: form.summary,
@@ -183,14 +177,11 @@ export default function Profile() {
 
             <p className="subheading">YOUR PROFILE DETAILS</p>
 
-            {/* 表单内容 */}
-
             <form
                 className="card"
                 id="profileForm"
                 onSubmit={handleSubmit}
             >
-                {/* Summary */}
                 <div>
                     <label>Summary</label>
                     <input
@@ -205,7 +196,6 @@ export default function Profile() {
 
                 <div style={{height: 12}}/>
 
-                {/* Visibility */}
                 <div>
                     <label>Visibility</label>
                     <select
@@ -219,7 +209,6 @@ export default function Profile() {
                     </select>
                 </div>
 
-                {/* Education */}
                 <h3 style={{marginTop: "20px"}}>Education</h3>
                 <div>
                     <label>School</label>
@@ -286,7 +275,6 @@ export default function Profile() {
 
                 <div style={{height: 12}}/>
 
-                {/* Experience */}
                 <h3 style={{marginTop: "20px"}}>Experience</h3>
                 <div>
                     <label>Company</label>
@@ -342,7 +330,6 @@ export default function Profile() {
 
                 <div style={{height: 12}}/>
 
-                {/* Skills */}
                 <h3 style={{marginTop: "20px"}}>Skills</h3>
                 <div>
                     <label>Skill</label>
@@ -389,7 +376,6 @@ export default function Profile() {
                         placeholder="e.g. 2.5"
                     />
                 </div>
-
 
                 <div>
                     <button
@@ -447,7 +433,6 @@ export default function Profile() {
                 box-shadow: 0 8px 30px rgba(0,0,0,.06);
                 }
                 .card > div { margin-bottom: 16px; }
-
              
                 .card label { 
                 display: block; 
@@ -461,7 +446,6 @@ export default function Profile() {
                 font-size: 13px; 
                 color: #ef4444;        
                 }
-
                
                 .card input,
                 .card textarea,
@@ -477,7 +461,6 @@ export default function Profile() {
                 transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
                 box-sizing: border-box;
                 }
-
                 
                 .card input:hover,
                 .card textarea:hover,
@@ -490,19 +473,16 @@ export default function Profile() {
                 border-color: #93c5fd;                     
                 box-shadow: 0 0 0 3px rgba(147,197,253,.45); 
                 }
-
                
                 .card [aria-invalid="true"] {
                 border-color: #f87171 !important;
                 box-shadow: 0 0 0 3px rgba(254,202,202,.6) !important;
                 }
-
                 
                 .card input::placeholder,
                 .card textarea::placeholder {
                 color: #94a3b8;
                 }
-
                
                 .card button[type="submit"],
                 .card button[type="reset"],
