@@ -60,7 +60,6 @@ export default function JobDetail() {
         fetchProfile();
     }, [id]);
 
-
     if (!job) return <div className="section">Job not found.</div>;
 
     const rawType = job.employment_type || job.employmentType;
@@ -166,7 +165,6 @@ export default function JobDetail() {
                     flexWrap: "wrap"
                 }}
             >
-                {/* 左边 */}
                 <div style={{ flex: "2 1 600px", minWidth: "300px" }}>
                     <article className="card" style={{ padding: "24px" }}>
                         <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "12px" }}>
@@ -198,7 +196,6 @@ export default function JobDetail() {
                     </article>
                 </div>
 
-                {/* 右边 */}
                 <div style={{flex: "1 1 300px", minWidth: "260px"}}>
                     <article className="card" style={{padding: "20px"}}>
                         <h3 style={{marginBottom: "10px"}}>Company Info</h3>
@@ -251,7 +248,6 @@ export default function JobDetail() {
                     </div>
                 </div>
             )}
-
 
             <style>{`
         *{box-sizing:border-box}
