@@ -1,11 +1,9 @@
 /* eslint-disable */
-import { vi } from 'vitest';
 
+import { vi } from 'vitest';
 vi.mock('../../App.css', () => ({}), { virtual: true });
 
-
 vi.mock('../navigation.jsx', () => ({ default: () => <div data-testid="nav" /> }));
-
 
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -13,19 +11,15 @@ vi.mock('react-router-dom', async () => {
   return { ...real, useNavigate: () => navigateMock };
 });
 
-
 vi.mock('../../services/api.js', () => ({
   default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
-
 vi.mock('axios', () => ({ default: { get: vi.fn() } }));
-
 
 vi.mock('../../services/authService', () => ({
   getCurrentUser: () => ({ role: 0, fullName: 'Alice' }),
 }));
-
 
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -44,10 +38,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.setItem('jobspring_token', 'test-token');
 
-
   api.get.mockImplementation((url) => {
     if (url === '/api/job_seeker/job_list') return Promise.resolve({ data: { content: jobs } });
-    if (url === '/api/favorites')          return Promise.resolve({ data: { content: [{ jobId: 1 }] } });
+    if (url === '/api/job_favorites')          return Promise.resolve({ data: { content: [{ jobId: 1 }] } });
     return Promise.resolve({ data: {} });
   });
 
@@ -58,9 +51,9 @@ beforeEach(() => {
 
 function renderHome() {
   return render(
-    <MemoryRouter>
-      <Home />
-    </MemoryRouter>
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
   );
 }
 
@@ -71,11 +64,9 @@ test('loads jobs and favorites on mount', async () => {
   expect(screen.getByText(/Data Analyst/i)).toBeInTheDocument();
   expect(screen.getByText(/Showing 2 results?/i)).toBeInTheDocument();
 
-
   const first = screen.getByRole('article', { name: /Frontend Dev at Acme/i });
   const fav1 = within(first).getAllByRole('button')[1];
   expect(fav1).toHaveStyle({ color: '#fbbf24' });
-
 
   const second = screen.getByRole('article', { name: /Data Analyst at Beta/i });
   const fav2 = within(second).getAllByRole('button')[1];
@@ -118,15 +109,14 @@ test('toggling favorite adds/removes via API and updates UI', async () => {
 
   api.post.mockResolvedValue({ data: {} });
   await userEvent.click(fav2);
-  expect(api.post).toHaveBeenCalledWith('/api/favorites/2', {}, {
+  expect(api.post).toHaveBeenCalledWith('/api/job_favorites/2', {}, {
     headers: { Authorization: 'Bearer test-token' },
   });
   await waitFor(() => expect(fav2).toHaveStyle({ color: '#fbbf24' }));
 
-
   api.delete.mockResolvedValue({ data: {} });
   await userEvent.click(fav2);
-  expect(api.delete).toHaveBeenCalledWith('/api/favorites/2', {
+  expect(api.delete).toHaveBeenCalledWith('/api/job_favorites/2', {
     headers: { Authorization: 'Bearer test-token' },
   });
   await waitFor(() => expect(fav2).toHaveStyle({ color: '#6b7280' }));
