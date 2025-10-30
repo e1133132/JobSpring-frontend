@@ -18,12 +18,3 @@ jobs:
           fail_action: false
           allow_issue_writing: false
           artifact_name: zap-frontend-report
-
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-frontend-report
-          path: |
-            report_html.html
-            zap_scan.log
-          if-no-files-found: warn
