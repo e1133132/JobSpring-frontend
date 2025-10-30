@@ -114,7 +114,7 @@ jobs:
           restore-keys: nvd-${{ runner.os }}-
 
       - name: Run Dependency-Check (HTML/JSON/XML)
-        uses: dependency-check/Dependency-Check_Action@v4
+        uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "${{ github.repository }}"
           path: "."
