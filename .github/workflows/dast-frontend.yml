@@ -1,30 +1,37 @@
-name: DAST - Frontend
+name: DAST - Frontend (manual docker)
+
 permissions:
   contents: read
   actions: write
 
 on:
   workflow_dispatch:
-  push: { branches: [ master, main ] }
 
 jobs:
-  zap-baseline:
+  zap-docker:
     runs-on: ubuntu-latest
     steps:
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@4dbc7854a9ad12686198001f786c09768ab9f9ac
-        with:
-          target: https://job-spring-frontend.vercel.app
-          cmd_options: '-a'
-          fail_action: false
-          allow_issue_writing: false
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ZAP Baseline via Docker
+        run: |
+          docker run --rm \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t https://job-spring-frontend.vercel.app \
+              -a \
+              -r report_html.html \
+              -J report_json.json \
+              -w report_md.md
 
       - name: Upload ZAP Report
-        if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
         uses: actions/upload-artifact@v4
         with:
           name: zap-frontend-report-${{ github.run_id }}
           path: |
             report_html.html
-            zap_scan.log
+            report_json.json
+            report_md.md
           if-no-files-found: warn
