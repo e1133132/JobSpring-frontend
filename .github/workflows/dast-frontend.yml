@@ -17,4 +17,13 @@ jobs:
           cmd_options: '-a'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: zap-frontend-report
+          upload_artifact: false
+
+      - name: Upload ZAP Report manually
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-frontend-report
+          path: |
+            report_html.html
+            zap_scan.log
+          if-no-files-found: warn
