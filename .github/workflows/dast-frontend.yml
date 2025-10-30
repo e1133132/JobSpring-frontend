@@ -1,0 +1,27 @@
+name: DAST - Frontend
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master, main ]
+
+jobs:
+  zap-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@906a3c93ffde4864839d31a93daadcbd2737b4da
+        with:
+          target: https://job-spring-frontend.vercel.app
+          rules_file_name: .zap/rules.tsv
+          cmd_options: '-a'
+          fail_action: false
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-frontend-report
+          path: |
+            report_html.html
+            zap_scan.log
+          if-no-files-found: warn
