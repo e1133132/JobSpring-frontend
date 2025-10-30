@@ -55,34 +55,33 @@ jobs:
           SARIF_FILE=$(ls codeql-results/*.sarif | head -n1)
           echo "Using SARIF: $SARIF_FILE"
 
+          # 如果仓库里有旧的 render.js，避免混淆
+          rm -f render.js
+
           cat > render.cjs <<'EOF'
           const fs = require('fs');
-          const path = process.argv[2];
+          const sarifPath = process.argv[2];
           const out = process.argv[3] || 'codeql-report.html';
 
-          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const data = JSON.parse(fs.readFileSync(sarifPath, 'utf8'));
           const runs = data.runs || [];
           const rows = [];
-
-          const sevOrder = { "error": 3, "warning": 2, "note": 1, "none": 0 };
-          let counts = { ERROR:0, WARNING:0, NOTE:0, NONE:0, TOTAL:0 };
+          const sevOrder = { error:3, warning:2, note:1, none:0 };
+          const counts = { ERROR:0, WARNING:0, NOTE:0, NONE:0, TOTAL:0 };
 
           for (const run of runs) {
-            const rules = ((run.tool||{}).driver||{}).rules || [];
-            const rulesById = {};
-            for (const r of rules) rulesById[r.id] = r;
-
+            const rules = (run.tool?.driver?.rules) || [];
+            const rulesById = Object.fromEntries(rules.map(r => [r.id, r]));
             for (const r of (run.results || [])) {
-              const ruleId = r.ruleId || (r.rule && r.rule.id) || '';
+              const ruleId = r.ruleId || r.rule?.id || '';
               const rule = rulesById[ruleId] || {};
-              const level = (r.level || ((rule.defaultConfiguration||{}).level) || 'warning').toLowerCase();
+              const level = (r.level || rule.defaultConfiguration?.level || 'warning').toLowerCase();
               const severity = level.toUpperCase();
-              const msg = (r.message && r.message.text) || '';
-              const loc = (r.locations && r.locations[0] && r.locations[0].physicalLocation) || {};
-              const file = (loc.artifactLocation && loc.artifactLocation.uri) || '';
-              const startLine = (loc.region && loc.region.startLine) || '';
-              const ruleName = rule.name || '';
-              rows.push({ severity, ruleId, ruleName, msg, file, startLine, levelOrder: sevOrder[level] ?? 0 });
+              const msg = r.message?.text || '';
+              const loc = r.locations?.[0]?.physicalLocation || {};
+              const file = loc.artifactLocation?.uri || '';
+              const startLine = loc.region?.startLine || '';
+              rows.push({ severity, ruleId, ruleName: rule.name || '', msg, file, startLine, levelOrder: sevOrder[level] ?? 0 });
               counts.TOTAL++;
               if (severity === 'ERROR') counts.ERROR++;
               else if (severity === 'WARNING') counts.WARNING++;
@@ -92,27 +91,22 @@ jobs:
           }
 
           rows.sort((a,b) => (b.levelOrder - a.levelOrder) || a.file.localeCompare(b.file) || (a.startLine - b.startLine));
-
           const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
           const now = new Date().toISOString();
 
-          const html = `<!doctype html>
-          <html><head><meta charset="utf-8"><title>CodeQL Report</title>
+          const html = `<!doctype html><html><head><meta charset="utf-8"><title>CodeQL Report</title>
           <style>
             body{font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#111;margin:24px}
-            h1{font-size:20px;margin:0 0 12px}
-            .summary{margin:12px 0 16px}
             .pill{display:inline-block;padding:2px 8px;border-radius:999px;margin-right:8px;font-weight:600}
             .err{background:#fde2e1;color:#a30000}.warn{background:#fff4ce;color:#9a6700}
             .note{background:#e7f5ff;color:#084298}.none{background:#eee;color:#555}
             table{border-collapse:collapse;width:100%}
             th,td{border:1px solid #ddd;padding:8px;vertical-align:top}
-            th{background:#f6f8fa;text-align:left;position:sticky;top:0}
+            th{background:#f6f8fa;position:sticky;top:0;text-align:left}
             tr:nth-child(even){background:#fafafa}
             code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
             .file{color:#0969da}
-          </style></head>
-          <body>
+          </style></head><body>
             <h1>CodeQL Report</h1>
             <div class="summary">
               <span class="pill err">ERROR: ${counts.ERROR}</span>
@@ -122,25 +116,23 @@ jobs:
               <span class="pill" style="background:#eaeef2;color:#24292f">TOTAL: ${counts.TOTAL}</span>
               <div>Generated at: ${esc(now)}</div>
             </div>
-            <table>
-              <thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>File</th><th>Line</th></tr></thead>
-              <tbody>
-                ${rows.map(r => `
-                  <tr>
-                    <td><code>${esc(r.severity)}</code></td>
-                    <td><code title="${esc(r.ruleName)}">${esc(r.ruleId)}</code></td>
-                    <td>${esc(r.msg || r.ruleName || '')}</td>
-                    <td class="file">${esc(r.file)}</td>
-                    <td>${esc(r.startLine)}</td>
-                  </tr>`).join('')}
-              </tbody>
-            </table>
+            <table><thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>File</th><th>Line</th></tr></thead>
+            <tbody>
+              ${rows.map(r => `<tr>
+                <td><code>${esc(r.severity)}</code></td>
+                <td><code title="${esc(r.ruleName)}">${esc(r.ruleId)}</code></td>
+                <td>${esc(r.msg || r.ruleName || '')}</td>
+                <td class="file">${esc(r.file)}</td>
+                <td>${esc(r.startLine)}</td>
+              </tr>`).join('')}
+            </tbody></table>
           </body></html>`;
           fs.writeFileSync(out, html);
           console.log(\`Wrote \${out} with \${rows.length} findings\`);
           EOF
 
           node render.cjs "$SARIF_FILE" "codeql-report.html"
+      
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
