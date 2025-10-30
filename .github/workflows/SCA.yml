@@ -117,8 +117,8 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@v4
         with:
           project: "${{ github.repository }}"
-          path: "."                            # 如需精确可改为 ./backend ./frontend
-          format: "ALL"                        # 生成 HTML/JSON/XML
+          path: "."
+          format: "ALL"                    # 生成 HTML/JSON/XML
           out: "dependency-check-report"
           args: >
             --enableRetired
