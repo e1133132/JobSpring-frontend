@@ -1,4 +1,4 @@
-name: DAST - Frontend (manual docker)
+name: DAST - Frontend
 
 permissions:
   contents: read
@@ -14,17 +14,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure write perms
+        run: sudo chmod -R 777 "$GITHUB_WORKSPACE"
+
       - name: Run ZAP Baseline via Docker
         run: |
-          docker run --rm \
-            -v $(pwd):/zap/wrk/:rw \
+          docker run --rm --user 0:0 \
+            -v "$GITHUB_WORKSPACE":/zap/wrk:rw \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
+            sh -lc "zap-baseline.py \
               -t https://job-spring-frontend.vercel.app \
               -a \
-              -r report_html.html \
-              -J report_json.json \
-              -w report_md.md
+              -r /zap/wrk/report_html.html \
+              -J /zap/wrk/report_json.json \
+              -w /zap/wrk/report_md.md"
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
