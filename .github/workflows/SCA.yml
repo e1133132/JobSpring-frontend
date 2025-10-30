@@ -1,0 +1,88 @@
+name: Trivy Security Scan (SCA/Container/SBOM)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: app-image
+  DOCKERFILE: Dockerfile
+
+jobs:
+  trivy_repo_and_image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   
+      actions: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Trivy FS scan -> SARIF
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-repo.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload SARIF (repo deps)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-repo.sarif
+
+      - name: Trivy FS scan -> JSON (artifact)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          format: 'json'
+          output: 'trivy-repo.json'
+          ignore-unfixed: true
+
+
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          trivy fs --format cyclonedx --output sbom.cyclonedx.json .
+
+
+      - name: Build image (if Dockerfile exists)
+        run: |
+          if [ -f "$DOCKERFILE" ]; then
+            docker build -t $IMAGE_NAME:ci -f "$DOCKERFILE" .
+          else
+            echo "No Dockerfile found, skip image scan"
+          fi
+
+      - name: Trivy Image -> SARIF
+        if: ${{ hashFiles(env.DOCKERFILE) != '' }}
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:ci'
+          format: 'sarif'
+          output: 'trivy-image.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload SARIF (image)
+        if: ${{ hashFiles(env.DOCKERFILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-artifacts
+          path: |
+            trivy-repo.json
+            sbom.cyclonedx.json
+            trivy-repo.sarif
+            trivy-image.sarif
+          if-no-files-found: ignore
