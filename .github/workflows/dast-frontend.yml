@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@906a3c93ffde4864839d31a93daadcbd2737b4da
+        uses: zaproxy/action-baseline@4dbc7854a9ad12686198001f786c09768ab9f9ac
         with:
           target: https://job-spring-frontend.vercel.app
           rules_file_name: .zap/rules.tsv
