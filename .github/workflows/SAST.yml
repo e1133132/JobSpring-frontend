@@ -55,7 +55,7 @@ jobs:
           SARIF_FILE=$(ls codeql-results/*.sarif | head -n1)
           echo "Using SARIF: $SARIF_FILE"
 
-          cat > render.js <<'EOF'
+          cat > render.cjs <<'EOF'
           const fs = require('fs');
           const path = process.argv[2];
           const out = process.argv[3] || 'codeql-report.html';
@@ -68,22 +68,21 @@ jobs:
           let counts = { ERROR:0, WARNING:0, NOTE:0, NONE:0, TOTAL:0 };
 
           for (const run of runs) {
-            const rules = (run.tool && run.tool.driver && run.tool.driver.rules) || [];
+            const rules = ((run.tool||{}).driver||{}).rules || [];
             const rulesById = {};
             for (const r of rules) rulesById[r.id] = r;
 
             for (const r of (run.results || [])) {
               const ruleId = r.ruleId || (r.rule && r.rule.id) || '';
               const rule = rulesById[ruleId] || {};
-              const level = (r.level || (rule.defaultConfiguration && rule.defaultConfiguration.level) || 'warning').toLowerCase();
-              const severity = level.toUpperCase(); // ERROR/WARNING/NOTE/NONE
+              const level = (r.level || ((rule.defaultConfiguration||{}).level) || 'warning').toLowerCase();
+              const severity = level.toUpperCase();
               const msg = (r.message && r.message.text) || '';
               const loc = (r.locations && r.locations[0] && r.locations[0].physicalLocation) || {};
               const file = (loc.artifactLocation && loc.artifactLocation.uri) || '';
               const startLine = (loc.region && loc.region.startLine) || '';
               const ruleName = rule.name || '';
-              const help = (rule.help && (rule.help.text || rule.help.markdown)) || '';
-              rows.push({ severity, ruleId, ruleName, msg, file, startLine, help, levelOrder: sevOrder[level] ?? 0 });
+              rows.push({ severity, ruleId, ruleName, msg, file, startLine, levelOrder: sevOrder[level] ?? 0 });
               counts.TOTAL++;
               if (severity === 'ERROR') counts.ERROR++;
               else if (severity === 'WARNING') counts.WARNING++;
@@ -92,34 +91,27 @@ jobs:
             }
           }
 
-          // sort by severity then file
-          rows.sort((a,b) => (b.levelOrder - a.levelOrder) || (a.file.localeCompare(b.file)) || (a.startLine - b.startLine));
+          rows.sort((a,b) => (b.levelOrder - a.levelOrder) || a.file.localeCompare(b.file) || (a.startLine - b.startLine));
 
           const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
           const now = new Date().toISOString();
 
           const html = `<!doctype html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>CodeQL Report</title>
-            <style>
-              body{font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#111;margin:24px}
-              h1{font-size:20px;margin:0 0 12px}
-              .summary{margin:12px 0 16px}
-              .pill{display:inline-block;padding:2px 8px;border-radius:999px;margin-right:8px;font-weight:600}
-              .err{background:#fde2e1;color:#a30000}
-              .warn{background:#fff4ce;color:#9a6700}
-              .note{background:#e7f5ff;color:#084298}
-              .none{background:#eee;color:#555}
-              table{border-collapse:collapse;width:100%}
-              th,td{border:1px solid #ddd;padding:8px;vertical-align:top}
-              th{background:#f6f8fa;text-align:left;position:sticky;top:0}
-              tr:nth-child(even){background:#fafafa}
-              code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-              .file{color:#0969da}
-            </style>
-          </head>
+          <html><head><meta charset="utf-8"><title>CodeQL Report</title>
+          <style>
+            body{font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#111;margin:24px}
+            h1{font-size:20px;margin:0 0 12px}
+            .summary{margin:12px 0 16px}
+            .pill{display:inline-block;padding:2px 8px;border-radius:999px;margin-right:8px;font-weight:600}
+            .err{background:#fde2e1;color:#a30000}.warn{background:#fff4ce;color:#9a6700}
+            .note{background:#e7f5ff;color:#084298}.none{background:#eee;color:#555}
+            table{border-collapse:collapse;width:100%}
+            th,td{border:1px solid #ddd;padding:8px;vertical-align:top}
+            th{background:#f6f8fa;text-align:left;position:sticky;top:0}
+            tr:nth-child(even){background:#fafafa}
+            code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+            .file{color:#0969da}
+          </style></head>
           <body>
             <h1>CodeQL Report</h1>
             <div class="summary">
@@ -131,15 +123,7 @@ jobs:
               <div>Generated at: ${esc(now)}</div>
             </div>
             <table>
-              <thead>
-                <tr>
-                  <th>Severity</th>
-                  <th>Rule</th>
-                  <th>Message</th>
-                  <th>File</th>
-                  <th>Line</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>File</th><th>Line</th></tr></thead>
               <tbody>
                 ${rows.map(r => `
                   <tr>
@@ -148,17 +132,15 @@ jobs:
                     <td>${esc(r.msg || r.ruleName || '')}</td>
                     <td class="file">${esc(r.file)}</td>
                     <td>${esc(r.startLine)}</td>
-                  </tr>
-                `).join('')}
+                  </tr>`).join('')}
               </tbody>
             </table>
-          </body>
-          </html>`;
+          </body></html>`;
           fs.writeFileSync(out, html);
-          console.log(`Wrote ${out} with ${rows.length} findings`);
+          console.log(\`Wrote \${out} with \${rows.length} findings\`);
           EOF
 
-          node render.js "$SARIF_FILE" "codeql-report.html"
+          node render.cjs "$SARIF_FILE" "codeql-report.html"
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -166,3 +148,4 @@ jobs:
           name: codeql-html
           path: codeql-report.html
           if-no-files-found: error
+
