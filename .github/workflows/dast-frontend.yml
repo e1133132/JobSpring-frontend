@@ -21,13 +21,14 @@ jobs:
         run: |
           docker run --rm --user 0:0 \
             -v "$GITHUB_WORKSPACE":/zap/wrk:rw \
+            -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            sh -lc "/zap/zap-baseline.py \
+            /zap/zap-baseline.py \
               -t https://job-spring-frontend.vercel.app \
               -a \
-              -r /zap/wrk/report_html.html \
-              -J /zap/wrk/report_json.json \
-              -w /zap/wrk/report_md.md"
+              -r report_html.html \
+              -J report_json.json \
+              -w report_md.md
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
