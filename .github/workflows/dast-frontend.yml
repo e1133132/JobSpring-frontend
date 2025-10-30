@@ -22,7 +22,7 @@ jobs:
           docker run --rm --user 0:0 \
             -v "$GITHUB_WORKSPACE":/zap/wrk:rw \
             ghcr.io/zaproxy/zaproxy:stable \
-            sh -lc "zap-baseline.py \
+            sh -lc "/zap/zap-baseline.py \
               -t https://job-spring-frontend.vercel.app \
               -a \
               -r /zap/wrk/report_html.html \
