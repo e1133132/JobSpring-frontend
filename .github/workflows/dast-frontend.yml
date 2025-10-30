@@ -19,6 +19,7 @@ jobs:
           cmd_options: '-a'
           fail_action: false
           allow_issue_writing: false
+          artifact_name: zap-temp-${{ github.run_id }}
 
       - name: Upload ZAP Report
         if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
