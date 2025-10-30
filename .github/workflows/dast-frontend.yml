@@ -1,9 +1,11 @@
 name: DAST - Frontend
+permissions:
+  contents: read
+  actions: write
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ master, main ]
+  push: { branches: [ master, main ] }
 
 jobs:
   zap-baseline:
@@ -17,4 +19,13 @@ jobs:
           cmd_options: '-a'
           fail_action: false
           allow_issue_writing: false
-          artifact_name: zap-frontend-report-${{ github.run_id }}
+
+      - name: Upload ZAP Report
+        if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-frontend-report-${{ github.run_id }}
+          path: |
+            report_html.html
+            zap_scan.log
+          if-no-files-found: warn
