@@ -230,7 +230,7 @@ export default function ReviewUpload() {
                     box-shadow: 0 0 0 3px rgba(147,197,253,.45); 
                 }
 
-                /* 三个按钮统一黑色样式 */
+                
                 .card button {
                     appearance: none;
                     border: 0;
