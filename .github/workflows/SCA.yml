@@ -1,0 +1,139 @@
+name: Trivy Security Scan (SCA/Container/SBOM + HTML)
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: app-image
+  DOCKERFILE: Dockerfile
+  TRIVY_SEVERITY: CRITICAL,HIGH
+  TRIVY_CACHE_DIR: .trivy-cache
+  TRIVY_TIMEOUT: 5m
+  TRIVY_IGNORE_UNFIXED: "true"
+
+jobs:
+  trivy_repo_and_image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      checks: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Trivy 缓存（可选但推荐） ----------
+      - name: Cache Trivy DB
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TRIVY_CACHE_DIR }}
+          key: trivy-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml', '**/pom.xml', '**/build.gradle*') }}
+          restore-keys: trivy-${{ runner.os }}-
+
+      # ---------- 1) 依赖/文件系统扫描（SCA） -> SARIF ----------
+      - name: Trivy FS scan -> SARIF
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-repo.sarif'
+          severity: '${{ env.TRIVY_SEVERITY }}'
+          ignore-unfixed: ${{ env.TRIVY_IGNORE_UNFIXED }}
+          timeout: ${{ env.TRIVY_TIMEOUT }}
+          cache-dir: ${{ env.TRIVY_CACHE_DIR }}
+          # 按需删除下行 args（减少噪声）
+          args: '--skip-dirs node_modules --skip-dirs dist --skip-dirs build'
+
+      - name: Upload SARIF (repo deps)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-repo.sarif
+
+      # ---------- 1b) FS 扫描 -> JSON 构件 ----------
+      - name: Trivy FS scan -> JSON (artifact)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          format: 'json'
+          output: 'trivy-repo.json'
+          ignore-unfixed: ${{ env.TRIVY_IGNORE_UNFIXED }}
+          timeout: ${{ env.TRIVY_TIMEOUT }}
+          cache-dir: ${{ env.TRIVY_CACHE_DIR }}
+          args: '--skip-dirs node_modules --skip-dirs dist --skip-dirs build'
+
+      # ---------- 2) 生成 SBOM（CycloneDX） ----------
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: 'fs'
+          format: 'cyclonedx'
+          output: 'sbom.cyclonedx.json'
+          ignore-unfixed: ${{ env.TRIVY_IGNORE_UNFIXED }}
+          timeout: ${{ env.TRIVY_TIMEOUT }}
+          cache-dir: ${{ env.TRIVY_CACHE_DIR }}
+
+      # ---------- 3) 容器镜像扫描（若存在 Dockerfile） ----------
+      - name: Build image (if Dockerfile exists)
+        run: |
+          if [ -f "$DOCKERFILE" ]; then
+            docker build -t $IMAGE_NAME:ci -f "$DOCKERFILE" .
+          else
+            echo "No Dockerfile found, skip image build"
+          fi
+
+      - name: Trivy Image -> SARIF
+        if: ${{ hashFiles(env.DOCKERFILE) != '' }}
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:ci'
+          format: 'sarif'
+          output: 'trivy-image.sarif'
+          severity: '${{ env.TRIVY_SEVERITY }}'
+          ignore-unfixed: ${{ env.TRIVY_IGNORE_UNFIXED }}
+          timeout: ${{ env.TRIVY_TIMEOUT }}
+          cache-dir: ${{ env.TRIVY_CACHE_DIR }}
+
+      - name: Upload SARIF (image)
+        if: ${{ hashFiles(env.DOCKERFILE) != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+
+      # ---------- 4) OWASP Dependency-Check（产出可视化 HTML 报告） ----------
+      - name: Cache NVD (Dependency-Check)
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ runner.os }}-${{ hashFiles('**/pom.xml', '**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml') }}
+          restore-keys: nvd-${{ runner.os }}-
+
+      - name: Run Dependency-Check (HTML/JSON/XML)
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "${{ github.repository }}"
+          path: "."
+          format: "ALL"                    # 生成 HTML/JSON/XML
+          out: "dependency-check-report"
+          args: >
+            --enableRetired
+
+      # ---------- 5) 打包所有报告 ----------
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-artifacts
+          path: |
+            trivy-repo.json
+            sbom.cyclonedx.json
+            trivy-repo.sarif
+            trivy-image.sarif
+            dependency-check-report/dependency-check-report.html
+            dependency-check-report/dependency-check-report.json
+            dependency-check-report/dependency-check-report.xml
+          if-no-files-found: ignore

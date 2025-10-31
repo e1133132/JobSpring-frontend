@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "**" ]
   schedule:
-    - cron: "0 7 * * 1"  
+    - cron: "0 7 * * 1"
 
 jobs:
   analyze:
@@ -20,9 +20,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript' ] 
+        language: [ 'javascript-typescript' ]  # 覆盖 TS；如只需 JS 改回 'javascript'
 
     steps:
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -36,3 +41,127 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          output: codeql-results
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif
+          path: codeql-results/*.sarif
+          if-no-files-found: warn
+
+      # === 新增：把 SARIF 转成 HTML 报告 ===
+      - name: Generate HTML report from SARIF (no backticks)
+        shell: bash
+        run: |
+          set -euo pipefail
+          SARIF_FILE=$(ls codeql-results/*.sarif | head -n1)
+          echo "Using SARIF: $SARIF_FILE"
+
+          # 清掉旧脚本，避免混淆
+          rm -f render.js render.mjs render.cjs
+
+          cat > render.cjs <<'EOF'
+          const fs = require('fs');
+          const sarifPath = process.argv[2];
+          const out = process.argv[3] || 'codeql-report.html';
+
+          const data = JSON.parse(fs.readFileSync(sarifPath, 'utf8'));
+          const runs = data.runs || [];
+          const rows = [];
+          const sevOrder = { error:3, warning:2, note:1, none:0 };
+          const counts = { ERROR:0, WARNING:0, NOTE:0, NONE:0, TOTAL:0 };
+
+          for (const run of runs) {
+            const rules = (run.tool && run.tool.driver && run.tool.driver.rules) || [];
+            const rulesById = {};
+            for (const r of rules) rulesById[r.id] = r;
+
+            for (const r of (run.results || [])) {
+              const ruleId = r.ruleId || (r.rule && r.rule.id) || '';
+              const rule = rulesById[ruleId] || {};
+              const level = (r.level || (rule.defaultConfiguration && rule.defaultConfiguration.level) || 'warning').toLowerCase();
+              const severity = level.toUpperCase();
+              const msg = (r.message && r.message.text) || '';
+              const loc = (r.locations && r.locations[0] && r.locations[0].physicalLocation) || {};
+              const file = (loc.artifactLocation && loc.artifactLocation.uri) || '';
+              const startLine = (loc.region && loc.region.startLine) || '';
+              const ruleName = rule.name || '';
+              rows.push({
+                severity, ruleId, ruleName, msg, file, startLine,
+                levelOrder: sevOrder[level] || 0
+              });
+              counts.TOTAL++;
+              if (severity === 'ERROR') counts.ERROR++;
+              else if (severity === 'WARNING') counts.WARNING++;
+              else if (severity === 'NOTE') counts.NOTE++;
+              else counts.NONE++;
+            }
+          }
+
+          rows.sort(function(a, b) {
+            return (b.levelOrder - a.levelOrder)
+              || a.file.localeCompare(b.file)
+              || ((a.startLine || 0) - (b.startLine || 0));
+          });
+
+          function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+              return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);
+            });
+          }
+
+          var summaryHtml =
+            '<span class="pill err">ERROR: ' + counts.ERROR + '</span>' +
+            '<span class="pill warn">WARNING: ' + counts.WARNING + '</span>' +
+            '<span class="pill note">NOTE: ' + counts.NOTE + '</span>' +
+            '<span class="pill none">OTHER: ' + counts.NONE + '</span>' +
+            '<span class="pill" style="background:#eaeef2;color:#24292f">TOTAL: ' + counts.TOTAL + '</span>' +
+            '<div>Generated at: ' + esc(new Date().toISOString()) + '</div>';
+
+          var rowsHtml = rows.map(function(r) {
+            return '' +
+            '<tr>' +
+              '<td><code>' + esc(r.severity) + '</code></td>' +
+              '<td><code title="' + esc(r.ruleName) + '">' + esc(r.ruleId) + '</code></td>' +
+              '<td>' + esc(r.msg || r.ruleName || '') + '</td>' +
+              '<td class="file">' + esc(r.file) + '</td>' +
+              '<td>' + esc(r.startLine) + '</td>' +
+            '</tr>';
+          }).join('');
+
+          var html =
+            '<!doctype html><html><head><meta charset="utf-8"><title>CodeQL Report</title>' +
+            '<style>' +
+            'body{font:14px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#111;margin:24px}' +
+            '.pill{display:inline-block;padding:2px 8px;border-radius:999px;margin-right:8px;font-weight:600}' +
+            '.err{background:#fde2e1;color:#a30000}.warn{background:#fff4ce;color:#9a6700}' +
+            '.note{background:#e7f5ff;color:#084298}.none{background:#eee;color:#555}' +
+            'table{border-collapse:collapse;width:100%}' +
+            'th,td{border:1px solid #ddd;padding:8px;vertical-align:top}' +
+            'th{background:#f6f8fa;position:sticky;top:0;text-align:left}' +
+            'tr:nth-child(even){background:#fafafa}' +
+            'code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}' +
+            '.file{color:#0969da}' +
+            '</style></head><body>' +
+            '<h1>CodeQL Report</h1>' +
+            '<div class="summary">' + summaryHtml + '</div>' +
+            '<table><thead><tr><th>Severity</th><th>Rule</th><th>Message</th><th>File</th><th>Line</th></tr></thead>' +
+            '<tbody>' + rowsHtml + '</tbody></table>' +
+            '</body></html>';
+
+          fs.writeFileSync(out, html, 'utf8');
+          console.log('Wrote ' + out + ' with ' + rows.length + ' findings');
+          EOF
+
+          node render.cjs "$SARIF_FILE" "codeql-report.html"
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-html
+          path: codeql-report.html
+          if-no-files-found: error
+
