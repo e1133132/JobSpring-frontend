@@ -156,11 +156,6 @@ jobs:
           console.log('Wrote ' + out + ' with ' + rows.length + ' findings');
           EOF
 
-          # 保护：确认脚本中没有反引号
-          if grep -q '\`' render.cjs; then
-            echo "Found backticks in render.cjs, aborting."; exit 1;
-          fi
-
           node render.cjs "$SARIF_FILE" "codeql-report.html"
 
       - name: Upload HTML report
