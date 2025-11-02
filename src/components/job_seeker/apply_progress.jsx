@@ -158,6 +158,8 @@ export default function Apply_progress() {
                               {it.jobTitle}
                             </Link></div>
                           <div className="app-meta">
+                            <span className="app-id">Application ID: {it.id}</span>
+                            <span className="dot">•</span>
                             <span className="company">{it.companyName}</span>
                             <span className="dot">•</span>
                             <span className="date">{formatDate(it.appliedAt)}</span>
