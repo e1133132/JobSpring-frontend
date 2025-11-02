@@ -32,8 +32,9 @@ export default function ReviewDetail() {
     const { state } = useLocation();
     const navigate = useNavigate();
     const id = Number(state?.id);
-    const [role] = useState(getCurrentUser() ? getCurrentUser().role : "guest");
-    const [name] = useState(getCurrentUser() ? getCurrentUser().fullName : "guest");
+
+    const [role] = useState(getCurrentUser()?.role || "guest");
+    const [name] = useState(getCurrentUser()?.fullName || "guest");
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -46,10 +47,11 @@ export default function ReviewDetail() {
 
     const fetchReviewDetail = async () => {
         try {
-            const res = await api.get(`/api/admin/check_review`);
+            const res = await api.get(`/api/admin/check_review/${id}`);
             console.log("Fetched review:", res.data);
-            setData(res.data?.[0] ?? null); 
+            setData(res.data ?? null);
         } catch (e) {
+            console.error("Fetch review failed:", e);
             setError(e?.message || "Load failed");
         } finally {
             setLoading(false);
@@ -57,26 +59,32 @@ export default function ReviewDetail() {
     };
 
     const review = useMemo(() => {
-        console.log("Review data review:", data);
-        const d = data || [];
-        console.log("Review data review d:", d.rating);
+        if (!data) return null;
+
+        const d = data;
+        const imageSrc = d.imageUrl?.startsWith("data:")
+            ? d.imageUrl
+            : d.imageUrl
+                ? `${import.meta.env.VITE_API_BASE}${d.imageUrl}`
+                : "";
+
         return {
-            applicationId: d.application_id ?? d.applicationId,
+            id: d.id ?? 0,
             title: d.title ?? "",
             content: d.content ?? "",
             rating: d.rating ?? 0,
-            id: d.id ?? 0,
             status: d.status ?? 0,
-            submittedAt: d.submitted_at ?? d.submittedAt,
-            reviewedBy: d.reviewed_by ?? d.reviewedBy ?? "",
-            publicAt: d.public_at ?? d.publicAt ?? null,
-            reviewNote: d.review_note ?? d.reviewNote ?? "",
-            imageUrl: d.imageurl ?? d.imageUrl ?? "",
+            submittedAt: d.submittedAt ?? d.submitted_at,
+            publicAt: d.publicAt ?? d.public_at,
+            reviewNote: d.reviewNote ?? d.review_note,
+            applicationId: d.applicationId ?? d.application_id,
+            reviewedBy: d.reviewedBy ?? d.reviewed_by,
+            imageSrc,
         };
     }, [data]);
 
-    const statusInfo = STATUS_MAP[review.status] ?? STATUS_MAP[0];
-    const previewUrl = useMemo(() => (review.imageUrl ? buildFileUrl(review.imageUrl) : ""), [review.imageUrl]);
+    const statusInfo = review ? STATUS_MAP[review.status] ?? STATUS_MAP[0] : STATUS_MAP[0];
+    const previewUrl = review?.imageSrc ? buildFileUrl(review.imageSrc) : "";
 
     async function handleUpdateStatus(nextStatus) {
         try {
@@ -101,6 +109,10 @@ export default function ReviewDetail() {
             setUpdating(false);
         }
     }
+
+    if (loading) return <p>Loading review data...</p>;
+    if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+    if (!review) return <p>No review data available.</p>;
 
     return (
         <div className="app-root">
@@ -167,10 +179,23 @@ export default function ReviewDetail() {
                             <div className="preview-head">
                                 <div className="ph-title">Attachment (Image)</div>
                                 <div className="ph-actions">
-                                    {previewUrl ? (
+                                    {review?.imageSrc ? (
                                         <>
-                                            <a className="btn primary small" href={previewUrl} target="_blank" rel="noreferrer">Open</a>
-                                            <a className="btn small" href={previewUrl} download>Download</a>
+                                            <a
+                                                className="btn primary small"
+                                                href={review.imageSrc}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                Open
+                                            </a>
+                                            <a
+                                                className="btn small"
+                                                href={review.imageSrc}
+                                                download={`review_${review.id || "image"}.png`}
+                                            >
+                                                Download
+                                            </a>
                                         </>
                                     ) : (
                                         <span className="muted">No Image</span>
@@ -179,15 +204,33 @@ export default function ReviewDetail() {
                             </div>
 
                             <div className="preview-pane" aria-label="Attachment preview">
-                                {previewUrl ? (
+                                {review?.imageSrc ? (
                                     <div className="img-box">
-                                        <img src={previewUrl} alt="Review Attachment" />
+                                        <img
+                                            src={review.imageSrc}
+                                            alt="Review Attachment"
+                                            style={{
+                                                maxWidth: "100%",
+                                                maxHeight: "400px",
+                                                borderRadius: "8px",
+                                                border: "1px solid #ccc",
+                                                backgroundColor: "#f8f8f8",
+                                                objectFit: "contain",
+                                            }}
+                                            onError={(e) => {
+                                                console.error("❌ Image load failed:", e.target.src.slice(0, 80));
+                                                e.target.style.display = "none";
+                                            }}
+                                        />
                                     </div>
                                 ) : (
-                                    <div className="muted" style={{ padding: 12 }}>No image to preview.</div>
+                                    <div className="muted" style={{ padding: 12 }}>
+                                        No image to preview.
+                                    </div>
                                 )}
                             </div>
                         </section>
+
 
                         <footer className="actions">
                             <button

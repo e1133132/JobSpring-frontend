@@ -28,6 +28,15 @@ export default function ReviewUpload() {
         setForm({ ...form, imageFile: file });
     };
 
+    const toBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file); // 这一步会自动带 data:image/png;base64,
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -40,31 +49,27 @@ export default function ReviewUpload() {
             setLoading(true);
             const token = localStorage.getItem("jobspring_token");
 
-            const formData = new FormData();
-            formData.append("applicationId", form.applicationId);
-            formData.append("title", form.title);
-            formData.append("content", form.content);
-            formData.append("rating", form.rating);
-            formData.append("file", form.imageFile);
+            const imageBase64 = await toBase64(form.imageFile);
+            console.log("📸 Encoded Base64 (first 100 chars):", imageBase64.slice(0, 100) + "...");
 
-            const response = await api.post(
-                "/api/job_seeker/postReview",
-                {
-                    applicationId: Number(form.applicationId),
-                    title: form.title,
-                    content: form.content,
-                    rating: Number(form.rating),
+            const payload = {
+                applicationId: Number(form.applicationId),
+                title: form.title,
+                content: form.content,
+                rating: Number(form.rating),
+                imageUrl: imageBase64,
+            };
+
+            const response = await api.post("/api/job_seeker/postReview", payload, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            });
 
-            console.log("Review submitted:", response.data);
+            console.log("✅ Review submitted:", response.data);
             alert("Review submitted successfully!");
+
             setForm({
                 applicationId: "",
                 title: "",
@@ -73,7 +78,7 @@ export default function ReviewUpload() {
                 imageFile: null,
             });
         } catch (error) {
-            console.error("Error submitting review:", error);
+            console.error("❌ Error submitting review:", error);
             alert("Failed to submit review, check console for details.");
         } finally {
             setLoading(false);
