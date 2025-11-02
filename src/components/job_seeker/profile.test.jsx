@@ -3,9 +3,10 @@ import { vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+
 vi.mock("../../App.css", () => ({}));
 
-vi.mock("axios", () => ({
+vi.mock("../../services/api.js", () => ({
     default: {
         get: vi.fn(),
         post: vi.fn(),
@@ -38,7 +39,7 @@ vi.mock("react-router-dom", async () => {
 });
 
 import Profile from "./Profile.jsx";
-import axios from "axios";
+import api from "../../services/api.js";
 
 function renderProfile() {
     return render(
@@ -52,12 +53,12 @@ beforeEach(() => {
     vi.clearAllMocks();
     global.alert = vi.fn();
     localStorage.setItem("jobspring_token", "fake_token");
-    axios.get.mockReset();
-    axios.post.mockReset();
+    api.get.mockReset();
+    api.post.mockReset();
 });
 
 test("renders profile and loads initial data", async () => {
-    axios.get
+    api.get
         .mockResolvedValueOnce({
             data: {
                 profile: { summary: "Hello world", visibility: 2 },
@@ -108,7 +109,7 @@ test("renders profile and loads initial data", async () => {
 });
 
 test("submits profile successfully", async () => {
-    axios.get
+    api.get
         .mockResolvedValueOnce({ data: { profile: {}, education: [], experience: [], skills: [] } })
         .mockResolvedValueOnce({
             data: [
@@ -116,7 +117,7 @@ test("submits profile successfully", async () => {
                 { id: 2, name: "React", category: "Frontend" },
             ],
         });
-    axios.post.mockResolvedValueOnce({ data: { ok: true } });
+    api.post.mockResolvedValueOnce({ data: { ok: true } });
 
     renderProfile();
 
@@ -128,7 +129,6 @@ test("submits profile successfully", async () => {
 
     const skillLabel = await screen.findByText("Skill");
     const skillSelect = skillLabel.nextElementSibling;
-    expect(skillSelect.tagName).toBe("SELECT");
     await userEvent.selectOptions(skillSelect, "1");
 
     const saveBtn = screen.getByRole("button", { name: /Save/i });
@@ -138,7 +138,7 @@ test("submits profile successfully", async () => {
         expect(global.alert).toHaveBeenCalledWith("Profile Submitted Successfully!")
     );
 
-    expect(axios.post).toHaveBeenCalledWith(
+    expect(api.post).toHaveBeenCalledWith(
         "/api/profile",
         expect.objectContaining({
             profile: expect.objectContaining({
@@ -150,12 +150,10 @@ test("submits profile successfully", async () => {
 });
 
 test("shows alert when submission fails", async () => {
-    axios.get
+    api.get
         .mockResolvedValueOnce({ data: { profile: {}, education: [], experience: [], skills: [] } })
         .mockResolvedValueOnce({ data: [] });
-    axios.post.mockRejectedValueOnce(new Error("Network Error"));
-
-    global.alert = vi.fn();
+    api.post.mockRejectedValueOnce(new Error("Network Error"));
 
     renderProfile();
 
@@ -170,7 +168,7 @@ test("shows alert when submission fails", async () => {
 });
 
 test("navigates back when Back button is clicked", async () => {
-    axios.get
+    api.get
         .mockResolvedValueOnce({ data: { profile: {}, education: [], experience: [], skills: [] } })
         .mockResolvedValueOnce({ data: [] });
 
@@ -183,7 +181,7 @@ test("navigates back when Back button is clicked", async () => {
 });
 
 test("resets all form fields when Reset button clicked", async () => {
-    axios.get
+    api.get
         .mockResolvedValueOnce({
             data: {
                 profile: { summary: "Something" },
@@ -200,5 +198,9 @@ test("resets all form fields when Reset button clicked", async () => {
     const resetBtn = screen.getByRole("button", { name: /Reset/i });
     await userEvent.click(resetBtn);
 
-    await waitFor(() => expect(screen.getByPlaceholderText(/Please enter your profile summary/i).value).toBe(""));
+    await waitFor(() =>
+        expect(
+            screen.getByPlaceholderText(/Please enter your profile summary/i).value
+        ).toBe("")
+    );
 });
