@@ -57,7 +57,7 @@ jobs:
           elif [ -f "jest.config.js" ] || [ -f "jest.config.ts" ]; then
             npx jest --ci --coverage
           else
-            npm test -- --ci --coverage
+            npm test -- --coverage
           fi
 
       - name: Build
