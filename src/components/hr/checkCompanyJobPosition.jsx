@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../navigation.jsx";
-import { FaArrowLeft, FaSync } from "react-icons/fa";
+import { FaSync } from "react-icons/fa";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";
 
@@ -68,10 +68,7 @@ export default function CheckCompanyJobPosition() {
       <Navigation role={role} username={username} />
 
       <div className="topbar" style={{ marginLeft: 24 }}>
-        <button className="btn ghost flex items-center gap-2" onClick={() => navigate(-1)}>
-          <FaArrowLeft className="icon" aria-hidden="true" />
-          <span>Back</span>
-        </button>
+        
       </div>
 
       <div className="card" style={{ margin: "12px 24px" }}>

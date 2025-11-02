@@ -146,7 +146,7 @@ export default function ApplicationDetail() {
 
     async function handleUpdateStatus(status) {
         try {
-            await api.patch(`/api/hr/applications/${id}/status`, { status });
+            await api.post(`/api/hr/applications/${id}/status`, { status });
             const word = status === 2 ? 'passed' : 'rejected';
             Swal.fire('Success', 'Application status ' + word, 'success');
         } catch (error) {
