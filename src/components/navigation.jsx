@@ -80,6 +80,7 @@ export default function Navigation({ role = "guest", username = "guest" }) {
     navigate("/auth/login")
   };
 
+
   const ACTIONS = {
     logoutUser,
     logoutAdmin,
