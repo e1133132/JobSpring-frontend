@@ -166,7 +166,7 @@ export default function Profile() {
             alert("Profile Submitted Successfully!");
         } catch (error) {
             console.error("Error submitting profile:", error);
-            alert("Failed to submit profile, check console for details.");
+            alert("Failed to submit profile, please fill in all the information.");
         }
     };
 

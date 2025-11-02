@@ -162,7 +162,7 @@ test("shows alert when submission fails", async () => {
 
     await waitFor(() =>
         expect(global.alert).toHaveBeenCalledWith(
-            "Failed to submit profile, check console for details."
+            "Failed to submit profile, please fill in all the information."
         )
     );
 });
