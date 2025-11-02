@@ -22,12 +22,6 @@ function formatDate(iso) {
     }
 }
 
-function buildFileUrl(url) {
-    if (!url) return "";
-    if (/^https?:\/\//i.test(url)) return url;
-    return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
-}
-
 export default function ReviewDetail() {
     const { state } = useLocation();
     const navigate = useNavigate();
