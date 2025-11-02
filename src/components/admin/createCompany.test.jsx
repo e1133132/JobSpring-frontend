@@ -6,6 +6,10 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
+beforeAll(() => {
+  global.URL.createObjectURL = vi.fn(() => "mock-preview-url");
+});
+
 vi.mock("../navigation.jsx", () => ({
   default: ({ role, username }) => (
     <div data-testid="nav">
@@ -236,14 +240,6 @@ test("failed submit shows error alert (SweetAlert2) and does not navigate", asyn
   const createBtn = screen.getByRole("button", { name: /Create/i });
 
   await userEvent.type(nameInput, "ACME Inc.");
-
-  api.post.mockRejectedValueOnce({
-    response: {
-      data: {
-        message: "Duplicate company name",
-      },
-    },
-  });
 
   const swalResolve = Promise.resolve();
   swalFireMock.mockReturnValueOnce(swalResolve);
