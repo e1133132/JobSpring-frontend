@@ -81,7 +81,7 @@ export default function ReviewDetail() {
     async function handleUpdateStatus(nextStatus) {
         try {
             setUpdating(true);
-            await api.patch(`/api/admin/review/pass/${id}`, { status: nextStatus });
+            await api.post(`/api/admin/review/pass/${id}`, { status: nextStatus });
             setData((old) => ({ ...(old || {}), status: nextStatus }));
             Swal.fire({
                 icon: "success",

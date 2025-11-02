@@ -33,12 +33,12 @@ vi.mock("sweetalert2", () => ({
 }));
 
 const apiGetMock = vi.fn();
-const apiPatchMock = vi.fn();
+const apiPostMock = vi.fn();
 vi.mock("../../services/api.js", () => ({
   __esModule: true,
   default: {
     get: (...args) => apiGetMock(...args),
-    patch: (...args) => apiPatchMock(...args),
+    post: (...args) => apiPostMock(...args),
   },
 }));
 
@@ -171,7 +171,7 @@ test("click Approve calls PATCH with status=2 and shows success Swal", async () 
     data: pendingReviewPayload,
   });
 
-  apiPatchMock.mockResolvedValueOnce({
+  apiPostMock.mockResolvedValueOnce({
     data: {},
   });
 
@@ -184,7 +184,7 @@ test("click Approve calls PATCH with status=2 and shows success Swal", async () 
 
   await userEvent.click(approveBtn);
 
-  expect(apiPatchMock).toHaveBeenCalledWith(
+  expect(apiPostMock).toHaveBeenCalledWith(
     "/api/admin/review/pass/10",
     { status: 2 }
   );
