@@ -155,7 +155,8 @@ export default function CheckReview() {
                         Showing {filtered?.length} result{filtered?.length === 1 ? "" : "s"}
                     </div>
 
-                    <div className="grid">
+                    <div className="grid"
+                        style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
                         {filtered?.length === 0 && <div className="muted">No reviews found.</div>}
 
                         {filtered?.map((r) => {
@@ -225,7 +226,7 @@ export default function CheckReview() {
                                         )}
                                         <button
                                             className="btnDetail"
-                                           onClick={() => navigate("/admin/audit/reviewDetail",{ state: { id: r.id } })}
+                                            onClick={() => navigate("/admin/audit/reviewDetail", { state: { id: r.id } })}
                                         >
                                             Review Detail
                                         </button>

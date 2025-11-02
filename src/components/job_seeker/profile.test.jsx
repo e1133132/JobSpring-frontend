@@ -38,7 +38,7 @@ vi.mock("react-router-dom", async () => {
     };
 });
 
-import Profile from "./Profile.jsx";
+import Profile from "./profile.jsx";
 import api from "../../services/api.js";
 
 function renderProfile() {
