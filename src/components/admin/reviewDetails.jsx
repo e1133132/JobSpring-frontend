@@ -84,8 +84,6 @@ export default function ReviewDetail() {
     }, [data]);
 
     const statusInfo = review ? STATUS_MAP[review.status] ?? STATUS_MAP[0] : STATUS_MAP[0];
-    const previewUrl = review?.imageSrc ? buildFileUrl(review.imageSrc) : "";
-
     async function handleUpdateStatus(nextStatus) {
         try {
             setUpdating(true);
