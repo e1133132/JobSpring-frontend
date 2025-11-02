@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
 import "../../App.css";
-import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
 import {FaRegStar, FaStar} from "react-icons/fa";
@@ -69,7 +68,7 @@ export default function Home() {
       return;
     }
     try {
-      const res = await axios.get("/api/job_seeker/job_list/search", {
+      const res = await api.get("/api/job_seeker/job_list/search", {
         params: { keyword: query, page: 0, size: 50 },
       });
       let list = res.data.content ?? [];

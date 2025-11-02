@@ -2,10 +2,10 @@ import React, {useEffect, useState} from "react";
 import "../../App.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import axios from "axios";
 import {getCurrentUser} from "../../services/authService";
 import Navigation from "../navigation.jsx";
 import {useNavigate} from "react-router-dom";
+import api from "../../services/api.js";
 
 export default function Profile() {
     const [form, setForm] = useState({
@@ -38,7 +38,7 @@ export default function Profile() {
         const fetchProfile = async () => {
             try {
                 const token = localStorage.getItem("jobspring_token");
-                const response = await axios.get("/api/profile", {
+                const response = await api.get("/api/profile", {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`
@@ -80,7 +80,7 @@ export default function Profile() {
         const fetchSkills = async () => {
             try {
                 const token = localStorage.getItem("jobspring_token");
-                const response = await axios.get("/api/skills", {
+                const response = await api.get("/api/skills", {
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`
@@ -155,7 +155,7 @@ export default function Profile() {
 
         try {
             const token = localStorage.getItem("jobspring_token");
-            const response = await axios.post("/api/profile", payload, {
+            const response = await api.post("/api/profile", payload, {
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`

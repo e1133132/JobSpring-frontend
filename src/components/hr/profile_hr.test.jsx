@@ -18,20 +18,20 @@ vi.mock("../../services/authService", () => ({
     })),
 }));
 
+// ✅ 改这里：mock 你的 api.js，而不是 axios
+vi.mock("../../services/api.js", () => ({
+    default: {
+        get: vi.fn(),
+    },
+}));
+
+import api from "../../services/api.js";
+
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
     const actual = await vi.importActual("react-router-dom");
     return { ...actual, useNavigate: () => mockNavigate };
 });
-
-vi.mock("axios", () => ({
-    default: {
-        get: vi.fn(),
-    },
-}));
-import axios from "axios";
-
-const flushPromises = () => new Promise(setImmediate);
 
 function renderProfileHR() {
     return render(
@@ -44,11 +44,11 @@ function renderProfileHR() {
 beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem("jobspring_token", "fake_token");
-    axios.get.mockReset();
+    api.get.mockReset();
 });
 
 test("renders HR profile with initial values", async () => {
-    axios.get.mockResolvedValueOnce({ data: "Keysight Technologies" });
+    api.get.mockResolvedValueOnce({ data: "Keysight Technologies" });
 
     renderProfileHR();
 
@@ -63,18 +63,20 @@ test("renders HR profile with initial values", async () => {
 });
 
 test("fetches and displays company name when token exists", async () => {
-    axios.get.mockResolvedValueOnce({ data: "Infineon Technologies" });
+    api.get.mockResolvedValueOnce({ data: "Infineon Technologies" });
 
     renderProfileHR();
 
-    await waitFor(() => expect(axios.get).toHaveBeenCalledWith(
-        "/api/hr/company-name",
-        expect.objectContaining({
-            headers: expect.objectContaining({
-                Authorization: expect.stringContaining("Bearer fake_token"),
-            }),
-        })
-    ));
+    await waitFor(() =>
+        expect(api.get).toHaveBeenCalledWith(
+            "/api/hr/company-name",
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: expect.stringContaining("Bearer fake_token"),
+                }),
+            })
+        )
+    );
 
     await waitFor(() =>
         expect(screen.getByDisplayValue("Infineon Technologies")).toBeInTheDocument()
@@ -83,7 +85,7 @@ test("fetches and displays company name when token exists", async () => {
 
 test("shows 'Not Available' if no token in localStorage", async () => {
     localStorage.removeItem("jobspring_token");
-    axios.get.mockResolvedValueOnce({ data: "Should not call" });
+    api.get.mockResolvedValueOnce({ data: "Should not call" });
 
     renderProfileHR();
 
@@ -93,7 +95,7 @@ test("shows 'Not Available' if no token in localStorage", async () => {
 });
 
 test("shows error message when API request fails", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Network Error"));
+    api.get.mockRejectedValueOnce(new Error("Network Error"));
     renderProfileHR();
 
     await waitFor(() =>
@@ -102,7 +104,7 @@ test("shows error message when API request fails", async () => {
 });
 
 test("navigates back to /hr/JobPosition when Back button clicked", async () => {
-    axios.get.mockResolvedValueOnce({ data: "NUS-ISS" });
+    api.get.mockResolvedValueOnce({ data: "NUS-ISS" });
     renderProfileHR();
 
     const backButton = await screen.findByRole("button", { name: /Back/i });
