@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../../App.css";
 import PropTypes from "prop-types";
 import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
-import axios from "axios";
 import api from "../../services/api.js";
 import { Link } from "react-router-dom";
 
@@ -39,8 +38,8 @@ export default function Apply_progress() {
   const [applications, setApplications] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedCount, setSavedCount] = useState(0);
-  const [role, ] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
-  const [name, ] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
+  const [role,] = useState(getCurrentUser() ? getCurrentUser().role : 'guest');
+  const [name,] = useState(getCurrentUser() ? getCurrentUser().fullName : 'guest');
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -59,9 +58,9 @@ export default function Apply_progress() {
   }, []);
 
   const currentList =
-      active === "saved"
-          ? savedJobs
-          : applications.filter((it) => STATUS_MAP[it.status] === active);
+    active === "saved"
+      ? savedJobs
+      : applications.filter((it) => STATUS_MAP[it.status] === active);
 
   const counts = {
     submitted: applications.filter((it) => it.status === 0).length,
@@ -73,9 +72,9 @@ export default function Apply_progress() {
     const fetchSaved = async () => {
       try {
         const token = localStorage.getItem("jobspring_token");
-        const res = await axios.get("/api/job_favorites", {
+        const res = await api.get("/api/job_favorites", {
           headers: { Authorization: `Bearer ${token}` },
-          params: { page: 0, size: 50 }
+          params: { page: 0, size: 100 }
         });
         setSavedJobs(res.data.content || []);
         setSavedCount(res.data.totalElements ?? res.data.content.length);
@@ -87,89 +86,89 @@ export default function Apply_progress() {
   }, [active]);
 
   return (
-      <div className="app-root">
-        <Navigation role={role} username={name}/>
-        <p className="subheading">Application Progress and Saved</p>
-        <main className="section" style={{marginTop: "10px"}}>
-          <div className="tabs" role="tablist" aria-label="Applications Status" style={{marginBottom: "16px"}}>
-            {TABS.map((t) => {
-              let badgeCount = counts[t.key] ?? 0;
-              if (t.key === "saved") {
-                badgeCount = savedCount;
-              }
-              return (
-                  <button
-                      key={t.key}
-                      className={`tab-btn ${active === t.key ? "active" : ""}`}
-                      onClick={() => setActive(t.key)}
-                      role="tab"
-                      aria-selected={active === t.key}
-                  >
-                    {t.label}
-                    <span className="badge">{badgeCount}</span>
-                  </button>
-              );
-            })}
-          </div>
+    <div className="app-root">
+      <Navigation role={role} username={name} />
+      <p className="subheading">Application Progress and Saved</p>
+      <main className="section" style={{ marginTop: "10px" }}>
+        <div className="tabs" role="tablist" aria-label="Applications Status" style={{ marginBottom: "16px" }}>
+          {TABS.map((t) => {
+            let badgeCount = counts[t.key] ?? 0;
+            if (t.key === "saved") {
+              badgeCount = savedCount;
+            }
+            return (
+              <button
+                key={t.key}
+                className={`tab-btn ${active === t.key ? "active" : ""}`}
+                onClick={() => setActive(t.key)}
+                role="tab"
+                aria-selected={active === t.key}
+              >
+                {t.label}
+                <span className="badge">{badgeCount}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          <div className="list">
-            {active === "saved" ? (
-                savedJobs.length === 0 ? (
-                    <div className="empty">No saved jobs yet.</div>
-                ) : (
-                    savedJobs.map((job) => (
-                        <div key={job.id} className="app-card">
-                          <div className="app-title"><Link
-                              to={`/jobs/${job.jobId}`}
-                              style={{
-                                color: "#2563eb",
-                                textDecoration: "none",
-                                fontWeight: "700",
-                              }}
-                              onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
-                              onMouseLeave={(e) => e.target.style.textDecoration = "none"}
-                          >
-                            {job.title}
-                          </Link></div>
-                          <div className="app-meta">
-                            <span className="company">{job.company}</span>
-                            <span className="dot">•</span>
-                            <span className="date">{formatDate(job.favoritedAt)}</span>
-                          </div>
-                        </div>
-                    ))
-                )
-            ) : (currentList.length === 0 ? (
-                    <div className="empty">No applications in this status.</div>
-                ) : (
-                    currentList.map((it) => (
-                        <div key={it.id} className="app-card">
-                          <div className="app-title">
-                            <Link
-                                to={`/jobs/${it.jobId}`}
-                                style={{
-                                  color: "#2563eb",
-                                  textDecoration: "none",
-                                  fontWeight: "700",
-                                }}
-                                onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
-                                onMouseLeave={(e) => e.target.style.textDecoration = "none"}
-                            >
-                              {it.jobTitle}
-                            </Link></div>
-                          <div className="app-meta">
-                            <span className="app-id">Application ID: {it.id}</span>
-                            <span className="dot">•</span>
-                            <span className="company">{it.companyName}</span>
-                            <span className="dot">•</span>
-                            <span className="date">{formatDate(it.appliedAt)}</span>
-                          </div>
-                        </div>
-                    )))
-            )}
-          </div>
-        </main>
-        <style>{`
+        <div className="list">
+          {active === "saved" ? (
+            savedJobs.length === 0 ? (
+              <div className="empty">No saved jobs yet.</div>
+            ) : (
+              savedJobs.map((job) => (
+                <div key={job.id} className="app-card">
+                  <div className="app-title"><Link
+                    to={`/jobs/${job.jobId}`}
+                    style={{
+                      color: "#2563eb",
+                      textDecoration: "none",
+                      fontWeight: "700",
+                    }}
+                    onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                    onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+                  >
+                    {job.title}
+                  </Link></div>
+                  <div className="app-meta">
+                    <span className="company">{job.company}</span>
+                    <span className="dot">•</span>
+                    <span className="date">{formatDate(job.favoritedAt)}</span>
+                  </div>
+                </div>
+              ))
+            )
+          ) : (currentList.length === 0 ? (
+            <div className="empty">No applications in this status.</div>
+          ) : (
+            currentList.map((it) => (
+              <div key={it.id} className="app-card">
+                <div className="app-title">
+                  <Link
+                    to={`/jobs/${it.jobId}`}
+                    style={{
+                      color: "#2563eb",
+                      textDecoration: "none",
+                      fontWeight: "700",
+                    }}
+                    onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                    onMouseLeave={(e) => e.target.style.textDecoration = "none"}
+                  >
+                    {it.jobTitle}
+                  </Link></div>
+                <div className="app-meta">
+                  <span className="app-id">Application ID: {it.id}</span>
+                  <span className="dot">•</span>
+                  <span className="company">{it.companyName}</span>
+                  <span className="dot">•</span>
+                  <span className="date">{formatDate(it.appliedAt)}</span>
+                </div>
+              </div>
+            )))
+          )}
+        </div>
+      </main>
+      <style>{`
        *{box-sizing:border-box}
 
          box-shadow:var(--ring)}
@@ -193,24 +192,24 @@ export default function Apply_progress() {
         }
       `}</style>
 
-        <footer
-            className="section"
-            style={{paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%",}}
-        >
-          <div className="muted">
-            © {new Date().getFullYear()} MySite. All rights reserved.
-          </div>
-        </footer>
-      </div>
+      <footer
+        className="section"
+        style={{ paddingBottom: 40, textAlign: "center", position: "fixed", bottom: 0, left: 0, width: "100%", }}
+      >
+        <div className="muted">
+          © {new Date().getFullYear()} MySite. All rights reserved.
+        </div>
+      </footer>
+    </div>
   );
 }
 Apply_progress.propTypes = {
   data: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-        title: PropTypes.string,
-        company: PropTypes.string,
-        status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      title: PropTypes.string,
+      company: PropTypes.string,
+      status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
       appliedAt: PropTypes.string, // ISO string
     })
   ),
