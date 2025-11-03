@@ -5,7 +5,6 @@ import { getCurrentUser } from "../../services/authService";
 import Navigation from "../navigation.jsx";
 import { useNavigate } from "react-router-dom";
 
-
 const STATUS_MAP = {
   0: "Submitted",
   1: "Selecting",
