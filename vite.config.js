@@ -11,10 +11,12 @@ export default defineConfig({
         globals: true,
         css: true,
         coverage: {
-            reporter: ['text', 'html'],
+            provider: 'v8',
+            reporter: ['text', 'html', 'lcov'],
+            reportsDirectory: 'coverage',
             include: ['src/**/*.{js,jsx}'],
             exclude: ['src/**/index.jsx'],
-        }
+        },
     },
     server: {
         proxy: {
