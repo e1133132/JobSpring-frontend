@@ -1,4 +1,3 @@
-// src/components/hr/CheckApplications.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../services/api.js";
 import { getCurrentUser } from "../../services/authService";

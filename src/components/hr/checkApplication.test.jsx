@@ -55,7 +55,7 @@ vi.mock('react-router-dom', async () => {
   return { ...real, useNavigate: () => navigateMock }
 })
 
-// API
+
 const apiGetMock = vi.fn()
 vi.mock('../../services/api.js', () => ({
   __esModule: true,

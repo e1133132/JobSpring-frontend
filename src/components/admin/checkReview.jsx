@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 export default function CheckReview() {
     const [reviews, setReviews] = useState([]);
     const [q, setQ] = useState("");
-    const [filter, setFilter] = useState("all"); // all | approved | rejected | pending
+    const [filter, setFilter] = useState("all"); 
     const [role] = useState(getCurrentUser() ? getCurrentUser().role : "guest");
     const [name] = useState(getCurrentUser() ? getCurrentUser().fullName : "guest");
     const [pending, setPending] = React.useState({});

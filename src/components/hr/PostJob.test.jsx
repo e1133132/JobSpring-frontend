@@ -33,7 +33,7 @@ function renderPage(jsx = <PostJob />) {
 async function fillValidForm(overrides = {}) {
   const defaults = {
     title: 'Frontend Developer',
-    employmentType: '1', // Full Time
+    employmentType: '1', 
     salaryMin: '3500',
     salaryMax: '6000',
   }
