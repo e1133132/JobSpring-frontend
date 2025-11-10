@@ -14,7 +14,7 @@ export default function Register() {
     const [touched, setTouched] = useState({});        // { fieldName: true }
     const formRef = useRef(null);
 
-    // form valid = all fields have value and no error messages
+
     const isFormValid = useMemo(() => {
         const hasValues =
             form.fullName.trim() && form.email.trim() && form.password && form.code;
@@ -57,7 +57,6 @@ export default function Register() {
 
     const handleSendCode = async () => {
         setMsg(null);
-        // validate email before sending
         const emailErr = validateField("email", form.email);
         setTouched((t) => ({...t, email: true}));
         setErrors((prev) => ({...prev, email: emailErr || undefined}));

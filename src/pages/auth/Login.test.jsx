@@ -7,7 +7,7 @@ import { vi } from 'vitest'
 
 import Login from './Login'
 
-// ---- Mocks ----
+
 const navigateMock = vi.fn()
 vi.mock('react-router-dom', async () => {
   const real = await vi.importActual('react-router-dom')

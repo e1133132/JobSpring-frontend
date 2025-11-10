@@ -18,7 +18,7 @@ vi.mock("../../services/authService", () => ({
     })),
 }));
 
-// ✅ 改这里：mock 你的 api.js，而不是 axios
+
 vi.mock("../../services/api.js", () => ({
     default: {
         get: vi.fn(),

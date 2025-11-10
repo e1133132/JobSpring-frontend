@@ -36,7 +36,7 @@ jobs:
           key: trivy-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml', '**/pom.xml', '**/build.gradle*') }}
           restore-keys: trivy-${{ runner.os }}-
 
-      # ---------- 1) 依赖/文件系统扫描（SCA） -> SARIF ----------
+    
       - name: Trivy FS scan -> SARIF
         uses: aquasecurity/trivy-action@0.24.0
         with:
@@ -47,7 +47,7 @@ jobs:
           ignore-unfixed: ${{ env.TRIVY_IGNORE_UNFIXED }}
           timeout: ${{ env.TRIVY_TIMEOUT }}
           cache-dir: ${{ env.TRIVY_CACHE_DIR }}
-          # 按需删除下行 args（减少噪声）
+      
           args: '--skip-dirs node_modules --skip-dirs dist --skip-dirs build'
 
       - name: Upload SARIF (repo deps)
@@ -55,7 +55,7 @@ jobs:
         with:
           sarif_file: trivy-repo.sarif
 
-      # ---------- 1b) FS 扫描 -> JSON 构件 ----------
+      
       - name: Trivy FS scan -> JSON (artifact)
         uses: aquasecurity/trivy-action@0.24.0
         with:
@@ -67,7 +67,7 @@ jobs:
           cache-dir: ${{ env.TRIVY_CACHE_DIR }}
           args: '--skip-dirs node_modules --skip-dirs dist --skip-dirs build'
 
-      # ---------- 2) 生成 SBOM（CycloneDX） ----------
+
       - name: Generate SBOM (CycloneDX)
         uses: aquasecurity/trivy-action@0.24.0
         with:
@@ -78,7 +78,7 @@ jobs:
           timeout: ${{ env.TRIVY_TIMEOUT }}
           cache-dir: ${{ env.TRIVY_CACHE_DIR }}
 
-      # ---------- 3) 容器镜像扫描（若存在 Dockerfile） ----------
+  
       - name: Build image (if Dockerfile exists)
         run: |
           if [ -f "$DOCKERFILE" ]; then
@@ -105,7 +105,7 @@ jobs:
         with:
           sarif_file: trivy-image.sarif
 
-      # ---------- 4) OWASP Dependency-Check（产出可视化 HTML 报告） ----------
+  
       - name: Cache NVD (Dependency-Check)
         uses: actions/cache@v4
         with:
@@ -118,12 +118,11 @@ jobs:
         with:
           project: "${{ github.repository }}"
           path: "."
-          format: "ALL"                    # 生成 HTML/JSON/XML
+          format: "ALL"                    
           out: "dependency-check-report"
           args: >
             --enableRetired
 
-      # ---------- 5) 打包所有报告 ----------
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

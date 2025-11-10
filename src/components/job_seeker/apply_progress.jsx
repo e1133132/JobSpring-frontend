@@ -210,7 +210,7 @@ Apply_progress.propTypes = {
       title: PropTypes.string,
       company: PropTypes.string,
       status: PropTypes.oneOf(["submitted", "viewed", "resume_passed"]),
-      appliedAt: PropTypes.string, // ISO string
+      appliedAt: PropTypes.string, 
     })
   ),
 };
